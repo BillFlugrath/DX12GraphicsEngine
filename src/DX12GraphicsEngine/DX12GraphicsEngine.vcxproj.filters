@@ -1,0 +1,374 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{67bebf86-9539-4f7f-b9e9-a376519ec1f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{954a8f61-1c3e-419b-baca-c5e2b83c689a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Util">
+      <UniqueIdentifier>{500a71f9-a0df-431e-9f3b-5d4ab5e3942b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Util">
+      <UniqueIdentifier>{93d5e482-943e-4182-8023-5676929aec55}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="EngineAndDXR">
+      <UniqueIdentifier>{f841451f-f402-43ad-a52c-6f2fe910be42}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="EngineAndDXR\DXR">
+      <UniqueIdentifier>{8ce787fe-c334-4aca-bafa-b7f9b86fc9ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="EngineAndDXR\DXR\examples_not_used">
+      <UniqueIdentifier>{9a2724a5-69db-431b-a1f2-51d184626039}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="EngineAndDXR\DXR\thirdparty">
+      <UniqueIdentifier>{1f9bea2f-f6c1-43c4-8c15-02dd872161a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="EngineAndDXR\DXR\thirdparty\dxc">
+      <UniqueIdentifier>{8755f2b2-e993-4c9f-aaaa-dc8296056749}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="EngineAndDXR\DXR\assets">
+      <UniqueIdentifier>{5da51575-f196-4324-a46f-d7730cc3c5f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="EngineAndDXR\DXR\assets\materials">
+      <UniqueIdentifier>{abebd9e5-498d-4b2c-8390-9dccaddcbf95}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="EngineAndDXR\DXR\assets\models">
+      <UniqueIdentifier>{d0736991-e99d-4216-bbe2-85951ece8887}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="EngineAndDXR\DXR\assets\shaders">
+      <UniqueIdentifier>{c0891c67-597b-4a76-9620-eba56f834ed9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="EngineAndDXR\DXR\assets\textures">
+      <UniqueIdentifier>{3e575cf1-551e-4e32-be87-f09422ed7113}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="EngineAndDXR\DXComputeShaders">
+      <UniqueIdentifier>{3e99ada5-480c-4b3c-91ab-5c833121fd4a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="EngineAndDXR\Engine">
+      <UniqueIdentifier>{8803cce7-b096-4249-a259-b06956f3e124}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Include">
+      <UniqueIdentifier>{ed5c686a-6e5e-4321-ae6a-4e8bac0a37f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="assets">
+      <UniqueIdentifier>{d3ef9946-0f68-498e-a2f1-6797d4124305}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="assets\models">
+      <UniqueIdentifier>{a0963de3-e027-41a5-94c2-b7b9ee9dc739}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="assets\pointclouds">
+      <UniqueIdentifier>{bf15d3d0-d8eb-472b-b9e1-b4c2440e1850}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="assets\shaders">
+      <UniqueIdentifier>{f0b72371-ba0d-451b-b240-896f944f26e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="assets\textures">
+      <UniqueIdentifier>{af00b0c9-bb20-47df-a311-224164e896f7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d3dx12.h">
+      <Filter>Header Files\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="DXSample.h">
+      <Filter>Header Files\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="DXSampleHelper.h">
+      <Filter>Header Files\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="StepTimer.h">
+      <Filter>Header Files\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Win32Application.h">
+      <Filter>Header Files\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXR\Common.h">
+      <Filter>EngineAndDXR\DXR</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXR\Structures.h">
+      <Filter>EngineAndDXR\DXR</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXR\Utils.h">
+      <Filter>EngineAndDXR\DXR</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXR\DXShaderUtilities.h">
+      <Filter>EngineAndDXR\DXR</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXR\DXD3DUtilities.h">
+      <Filter>EngineAndDXR\DXR</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXR\DXRUtilities.h">
+      <Filter>EngineAndDXR\DXR</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXR\DXResourceUtilities.h">
+      <Filter>EngineAndDXR\DXR</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXR\DXRManager.h">
+      <Filter>EngineAndDXR\DXR</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXR\thirdparty\d3dx12.h">
+      <Filter>EngineAndDXR\DXR\thirdparty</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXR\thirdparty\stb_image.h">
+      <Filter>EngineAndDXR\DXR\thirdparty</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXR\thirdparty\tiny_obj_loader.h">
+      <Filter>EngineAndDXR\DXR\thirdparty</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXR\thirdparty\dxc\dxcapi.h">
+      <Filter>EngineAndDXR\DXR\thirdparty\dxc</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXR\thirdparty\dxc\dxcapi.use.h">
+      <Filter>EngineAndDXR\DXR\thirdparty\dxc</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXR\Window.h">
+      <Filter>EngineAndDXR\DXR</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXComputeShaders\DXComputeShader_1.h">
+      <Filter>EngineAndDXR\DXComputeShaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXComputeShaders\DXComputeShader_2.h">
+      <Filter>EngineAndDXR\DXComputeShaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXComputeShaders\DXPointCloudComputeShader_1.h">
+      <Filter>EngineAndDXR\DXComputeShaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXComputeShaders\DXPointCloudComputeShader_2.h">
+      <Filter>EngineAndDXR\DXComputeShaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXComputeShaders\DXPointCloudComputeShader_3.h">
+      <Filter>EngineAndDXR\DXComputeShaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\d3dUtil.h">
+      <Filter>EngineAndDXR\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXCamera.h">
+      <Filter>EngineAndDXR\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXComputeShader.h">
+      <Filter>EngineAndDXR\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXDescriptorHeap.h">
+      <Filter>EngineAndDXR\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXGraphicsUtilities.h">
+      <Filter>EngineAndDXR\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXMesh.h">
+      <Filter>EngineAndDXR\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXModel.h">
+      <Filter>EngineAndDXR\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXPointCloud.h">
+      <Filter>EngineAndDXR\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXTexture.h">
+      <Filter>EngineAndDXR\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXTexturedQuad.h">
+      <Filter>EngineAndDXR\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\lodepng.h">
+      <Filter>EngineAndDXR\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXR\DXRVertices.h">
+      <Filter>EngineAndDXR\DXR</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXR\BLAS_TLAS_Utilities.h">
+      <Filter>EngineAndDXR\DXR</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXR\DXRPipelineStateObject.h">
+      <Filter>EngineAndDXR\DXR</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DDSTextureLoader.h">
+      <Filter>EngineAndDXR\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\d3d12.h">
+      <Filter>Header Files\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\d3d12_1.h">
+      <Filter>Header Files\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\d3d12video.h">
+      <Filter>Header Files\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\d3dx12.h">
+      <Filter>Header Files\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\dxcapi.h">
+      <Filter>Header Files\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D12PointCloudApp_4.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DX12Raytracing_1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXR\DXResourceBindingUtilities.h">
+      <Filter>EngineAndDXR\DXR</Filter>
+    </ClInclude>
+    <ClInclude Include="DX12Raytracing_2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Win32Application.cpp">
+      <Filter>Source Files\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="DXSample.cpp">
+      <Filter>Source Files\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\DXR\Utils.cpp">
+      <Filter>EngineAndDXR\DXR</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\DXR\DXShaderUtilities.cpp">
+      <Filter>EngineAndDXR\DXR</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\DXR\DXD3DUtilities.cpp">
+      <Filter>EngineAndDXR\DXR</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\DXR\DXRUtilities.cpp">
+      <Filter>EngineAndDXR\DXR</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\DXR\DXResourceUtilities.cpp">
+      <Filter>EngineAndDXR\DXR</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\DXR\DXRManager.cpp">
+      <Filter>EngineAndDXR\DXR</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\DXR\Window.cpp">
+      <Filter>EngineAndDXR\DXR</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\DXComputeShaders\DXComputeShader_1.cpp">
+      <Filter>EngineAndDXR\DXComputeShaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\DXComputeShaders\DXComputeShader_2.cpp">
+      <Filter>EngineAndDXR\DXComputeShaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\DXComputeShaders\DXPointCloudComputeShader_1.cpp">
+      <Filter>EngineAndDXR\DXComputeShaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\DXComputeShaders\DXPointCloudComputeShader_2.cpp">
+      <Filter>EngineAndDXR\DXComputeShaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\DXComputeShaders\DXPointCloudComputeShader_3.cpp">
+      <Filter>EngineAndDXR\DXComputeShaders</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\d3dUtil.cpp">
+      <Filter>EngineAndDXR\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\DXCamera.cpp">
+      <Filter>EngineAndDXR\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\DXComputeShader.cpp">
+      <Filter>EngineAndDXR\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\DXDescriptorHeap.cpp">
+      <Filter>EngineAndDXR\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\DXGraphicsUtilities.cpp">
+      <Filter>EngineAndDXR\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\DXMesh.cpp">
+      <Filter>EngineAndDXR\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\DXModel.cpp">
+      <Filter>EngineAndDXR\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\DXPointCloud.cpp">
+      <Filter>EngineAndDXR\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\DXTexture.cpp">
+      <Filter>EngineAndDXR\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\DXTexturedQuad.cpp">
+      <Filter>EngineAndDXR\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\lodepng.cpp">
+      <Filter>EngineAndDXR\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\DXR\BLAS_TLAS_Utilities.cpp">
+      <Filter>EngineAndDXR\DXR</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\DXR\DXRPipelineStateObject.cpp">
+      <Filter>EngineAndDXR\DXR</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\DDSTextureLoader.cpp">
+      <Filter>EngineAndDXR\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="DX12Raytracing_1.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D3D12PointCloudApp_4.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\DXR\DXResourceBindingUtilities.cpp">
+      <Filter>EngineAndDXR\DXR</Filter>
+    </ClCompile>
+    <ClCompile Include="DX12Raytracing_2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+    <None Include="Engine\DXR\assets\materials\quad.mtl">
+      <Filter>EngineAndDXR\DXR\assets\materials</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Engine\DXR\assets\shaders\ClosestHit.hlsl">
+      <Filter>EngineAndDXR\DXR\assets\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Engine\DXR\assets\shaders\Common.hlsl">
+      <Filter>EngineAndDXR\DXR\assets\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Engine\DXR\assets\shaders\Miss.hlsl">
+      <Filter>EngineAndDXR\DXR\assets\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Engine\DXR\assets\shaders\RayGen.hlsl">
+      <Filter>EngineAndDXR\DXR\assets\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Engine\DXR\assets\shaders\ClosestHit_unbound.hlsl">
+      <Filter>EngineAndDXR\DXR\assets\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Engine\DXR\assets\shaders\Common_unbound.hlsl">
+      <Filter>EngineAndDXR\DXR\assets\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Engine\DXR\assets\shaders\Miss_unbound.hlsl">
+      <Filter>EngineAndDXR\DXR\assets\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Engine\DXR\assets\shaders\RayGen_unbound.hlsl">
+      <Filter>EngineAndDXR\DXR\assets\shaders</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="readme_by_bill_2.txt">
+      <Filter>EngineAndDXR\DXR</Filter>
+    </Text>
+    <Text Include="Engine\DXR\assets\readme_by_bill_3.txt">
+      <Filter>EngineAndDXR\DXR\assets</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <Object Include="Engine\DXR\assets\models\cube.obj">
+      <Filter>EngineAndDXR\DXR\assets\models</Filter>
+    </Object>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Engine\DXR\assets\textures\statue.jpg">
+      <Filter>EngineAndDXR\DXR\assets\textures</Filter>
+    </Image>
+  </ItemGroup>
+</Project>
