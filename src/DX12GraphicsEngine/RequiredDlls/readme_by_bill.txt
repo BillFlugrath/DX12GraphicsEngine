@@ -1,0 +1,2 @@
+Copy dxcompiler.dll and dxil.dll from the "RequiredDlls" folder and paste them into the folder that
+has the built application exe.  Most likely, copy them into bin/x64/Debug and bin/x64/Release where "bin" is a directory in same directory as the VS project.
