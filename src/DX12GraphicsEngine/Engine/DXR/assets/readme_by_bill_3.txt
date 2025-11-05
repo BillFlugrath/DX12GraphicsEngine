@@ -2,7 +2,7 @@ This assets folder in DXR folder is for testing code in the DXR folder.  Applica
 elsewhere.
 
 Be sure to run D3D12_RAYTRACING_TIER_1_1 or higher.  Also, run the latest DXCompiler.  Currently, using 
-Microsoft.Direct3D.DXC version 1.8.2505.32 dowloaded via Nuget.  All DXR shaders need to be compiled at profile 6_5
+Microsoft.Direct3D.DXC version 1.8.2505.32 downloaded via Nuget.  All DXR shaders need to be compiled at profile 6_5
 or greater.
 
 !!MUST PUT TWO DLLs IN SAME DIR AS APP EXE!!!  The shaders used for ray tracing (in this demo) are compiled
@@ -23,10 +23,6 @@ Ensure DXIL libraries are present
 The DirectX Shader Compiler (dxcompiler.dll) and DirectX Intermediate Language validator (dxil.dll)
 must be in the same directory as the executable!!!
 This is especially important for development builds where signing happens at runtime. 
-
-The cube.obj i used as a test model to render.  It uses the quad.mtl material.  THE ".mtl" FILE TYPE SPECIFIES 
-THE TEXTURE RESOLUTION!!  ie -texres 256 is in quad.mtl.  Thus, if a texture is resized in Photoshop, 
-IrfanView etc, any material that uses the texture will need to be updated!!
 
 The "Engine" code that is separate from the ray tracing DXR folder requires 
 #include <D3Dcompiler.h> to properly compile.  Thus, #include <D3Dcompiler.h> is added
