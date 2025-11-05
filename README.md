@@ -10,4 +10,4 @@ There is also a point cloud renderer in one of the applications that loads .ply 
 
 For the sample apps, 3-d models are Wavefront "obj" files that contain the vertex data (position, normals, uvs).  The texture data for the assets is either png, dds, or jpg. 
 
-Thea main.cpp is the entry point to the application and has the standard WinMain function.
+The main.cpp is the entry point to the application and has the standard WinMain function.
