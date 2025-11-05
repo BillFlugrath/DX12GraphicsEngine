@@ -225,12 +225,13 @@ void DXRUtilities::Create_Closest_Hit_Program(D3D12Global& d3d, DXRGlobal& dxr, 
 	ranges[3].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
 	ranges[3].OffsetInDescriptorsFromTableStart =11;
 
-	//unbound index 
+	//unbound index and vertex buffers
 	ranges[4].BaseShaderRegister = 0;
 	ranges[4].NumDescriptors = UINT_MAX;
 	ranges[4].RegisterSpace = 1;
 	ranges[4].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 	ranges[4].OffsetInDescriptorsFromTableStart = 12;
+
 
 	D3D12_ROOT_PARAMETER param0 = {};
 	param0.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
@@ -276,7 +277,7 @@ void DXRUtilities::Create_Closest_Hit_Program(D3D12Global& d3d, DXRGlobal& dxr, 
 }
 
 void DXRUtilities::Create_Closest_Hit_Program_Unbound_Resources(D3D12Global& d3d, DXRGlobal& dxr, D3D12ShaderCompilerInfo& shaderCompiler,
-	const std::wstring& filename)
+	const std::wstring& filename, uint32_t numMeshObjects)
 {
 	// Note: since all of our triangles are opaque, we will ignore the any hit program.
 
@@ -300,7 +301,7 @@ void DXRUtilities::Create_Closest_Hit_Program_Unbound_Resources(D3D12Global& d3d
 
 
 	// Describe the root signature
-	D3D12_DESCRIPTOR_RANGE ranges[5];
+	D3D12_DESCRIPTOR_RANGE ranges[7];
 
 	ranges[0].BaseShaderRegister = 0;
 	ranges[0].NumDescriptors = 2;
@@ -327,12 +328,26 @@ void DXRUtilities::Create_Closest_Hit_Program_Unbound_Resources(D3D12Global& d3d
 	ranges[3].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
 	ranges[3].OffsetInDescriptorsFromTableStart = 7;
 
-	//unbound index and vertex
-	ranges[4].BaseShaderRegister = 0;
-	ranges[4].NumDescriptors = UINT_MAX;
-	ranges[4].RegisterSpace = 1;
-	ranges[4].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	//1 cbv reg at b3
+	ranges[4].BaseShaderRegister = 3;
+	ranges[4].NumDescriptors = 1;
+	ranges[4].RegisterSpace = 0;
+	ranges[4].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
 	ranges[4].OffsetInDescriptorsFromTableStart = 8;
+
+	//unbound index and vertex
+	ranges[5].BaseShaderRegister = 0;
+	ranges[5].NumDescriptors = UINT_MAX;
+	ranges[5].RegisterSpace = 1;
+	ranges[5].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	ranges[5].OffsetInDescriptorsFromTableStart = 9;
+
+	//unbound texture buffers
+	ranges[6].BaseShaderRegister = 0;
+	ranges[6].NumDescriptors = UINT_MAX;
+	ranges[6].RegisterSpace = 2;
+	ranges[6].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	ranges[6].OffsetInDescriptorsFromTableStart = 9 + 2* numMeshObjects;
 
 
 	D3D12_ROOT_PARAMETER param0 = {};

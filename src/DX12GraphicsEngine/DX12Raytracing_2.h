@@ -15,6 +15,7 @@ class DXRManager;
 struct D3DMesh;
 struct D3DModel;
 struct D3DSceneModels;
+struct D3DSceneTextures;
 
 class DX12Raytracing_2 : public DXSample
 {
@@ -51,6 +52,7 @@ public:
 	std::shared_ptr<D3DModel> m_pD3DModel_1;
 
 	std::shared_ptr<D3DSceneModels> m_pD3DSceneModels;
+	std::shared_ptr<D3DSceneTextures> m_pD3DSceneTextures2D;
 
 	std::shared_ptr<DXTexture> m_pDXTexture_0;
 	std::shared_ptr<DXTexture> m_pDXTexture_1;
@@ -69,5 +71,7 @@ public:
 
 	// Root assets path.
 	std::wstring m_assetsPath;
+
+	bool m_bUseBoundResources = false;  //if false, use unbound resources and index resources in the hlsl shader
 
 };

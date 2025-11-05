@@ -39,10 +39,14 @@ cbuffer SceneShaderData : register(b2)
 	//then model 0 has 3 unique mesh objects (ie 3 unique vertex buffers).
 	uint numberOfMeshes[512];
 
+};
+
+
+cbuffer SceneTextureShaderData : register(b3)
+{
 	//get the index into srv descriptor array for diffuse textures for a given mesh
 	uint diffuseTextureIndexForMesh[512];
-
-};
+}
 
 // ---[ Resources ]---
 
@@ -50,15 +54,16 @@ RWTexture2D<float4> RTOutput				: register(u0);
 RaytracingAccelerationStructure SceneBVH	: register(t0);
 
 
-Texture2D<float4> albedo					: register(t1);
-Texture2D<float4> albedo_2					: register(t2);
+//Texture2D<float4> albedo					: register(t1);
+//Texture2D<float4> albedo_2					: register(t2);
 
 TextureCube cubeMap_0						: register(t3);
 
 SamplerState      g_SamplerState : register(s0);
 
 //Bindless Buffers for all index and vertex buffers in scene
-ByteAddressBuffer indices_and_verts[] : register(t0, space1);  //indices
+ByteAddressBuffer indices_and_verts[] : register(t0, space1);  //index and vertex buffers
+Texture2D<float4> diffuse_textures[] : register(t0, space2); //diffuse textures
 
 // ---[ Helper Functions ]---
 
@@ -95,6 +100,23 @@ uint GetIndexBufferArrayIndex()
 
 	flatIndex += 2 * geoIndex;
 
+	return flatIndex;
+}
+
+uint GetMeshIndex()
+{
+	uint instID = InstanceIndex();
+	uint i = 0;
+	uint flatIndex = 0;
+
+	for (i = 0; i < instID; ++i)
+	{
+		flatIndex +=  numberOfMeshes[i];  
+	}
+
+	uint geoIndex = GeometryIndex();
+
+	flatIndex += geoIndex;
 	return flatIndex;
 }
 

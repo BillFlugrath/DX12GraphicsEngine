@@ -25,19 +25,21 @@ public:
 
 	HRESULT CreateConstantBufferResources(float textureResolution);
 
-	HRESULT CreateUnboundVertexAndIndexBufferSRVs(D3DSceneModels& d3dSceneModels, std::vector<D3DTexture> textures);
+	HRESULT CreateUnboundVertexAndIndexBufferSRVs(D3DSceneModels& d3dSceneModels, D3DSceneTextures& textures2D);
 	HRESULT CreateCBVSRVUAVDescriptorHeap(D3DSceneModels& d3dSceneModels, std::vector<D3DTexture> textures);
 
 	HRESULT Create_PSO_and_ShaderTable();
 
 	HRESULT CreateTopAndBottomLevelAS(D3DSceneModels& d3dSceneModels);
 
-	HRESULT CreateShadersAndRootSignatures();
+	HRESULT CreateShadersAndRootSignatures(); 
+	HRESULT CreateShadersAndRootSignaturesUnbound(D3DSceneModels& d3dSceneModels);
 
 	void ExecuteCommandList();
 	void ResetCommandList();
 
 	void Update(XMMATRIX& view, XMFLOAT3& cam_pos, float cam_fov);
+	void UpdateUnboundCB(D3DSceneModels& d3dSceneModels, D3DSceneTextures& textures2D);
 	void Render();
 
 	void Cleanup();
@@ -47,7 +49,7 @@ public:
 	void SetBoundResources(bool bindless) { m_bUseBoundResources = bindless; }
 	bool GetBoundResources() { return m_bUseBoundResources; }
 
-	void InitializeUnboundResources(D3DSceneModels& d3dSceneModels, std::vector<D3DTexture>& textures);
+	void InitializeUnboundResources(D3DSceneModels& d3dSceneModels, D3DSceneTextures& textures2D);
 
 protected:
 	

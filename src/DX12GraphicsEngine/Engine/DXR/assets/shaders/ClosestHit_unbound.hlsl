@@ -41,7 +41,7 @@ void ClosestHit(inout HitInfo payload : SV_RayPayload,
 	*/
 	//return;
 
-	vertex.uv = 1.0f - vertex.uv; //flip the x and y coord
+	vertex.uv.y = 1.0f - vertex.uv.y; //flip they coord
 
 	//calculate texel row,col and load unfiltered texel from texture object's gpu memory
 	//int2 coord = floor(vertex.uv * textureResolution.x);
@@ -49,7 +49,19 @@ void ClosestHit(inout HitInfo payload : SV_RayPayload,
 
 	//sample the texture with regular uv coords via a sampler with filter settings
 	// float3 color = albedo.Sample(g_SamplerState, vertex.uv); //The "Sample" function does NOT work, use SampleLevel
-	float3 color = albedo.SampleLevel(g_SamplerState, vertex.uv, 0);//using  use SampleLevel since Sample doesnt work
+
+	uint meshIndex = GetMeshIndex();
+	uint texIndex = diffuseTextureIndexForMesh[meshIndex];
+	float3 color = diffuse_textures[texIndex].SampleLevel(g_SamplerState, vertex.uv, 0);
+
+	/*
+	if (diffuseTextureIndexForMesh[0] == 1)
+	{
+		float3 color = float3(1, 1, 0);
+		payload.ShadedColorAndHitT = float4(color, RayTCurrent());
+		return;
+	}
+	*/
 	
 	payload.ShadedColorAndHitT = float4(color, RayTCurrent());
 
@@ -107,10 +119,13 @@ void ClosestHit_2(inout HitInfo payload : SV_RayPayload,
 	}
 	*/
 
-	vertex.uv = 1.0f - vertex.uv; //flip the x and y coord
+	//flip they coord
 
 	int2 coord = floor(vertex.uv * textureResolution.x);
-	float3 color = albedo_2.Load(int3(coord, 0)).rgb;
+
+	//uint meshIndex = GetMeshIndex();
+	//uint texIndex = diffuseTextureIndexForMesh[meshIndex];
+	//float3 color = diffuse_textures[texIndex].Load(int3(coord, 0)).rgb;
 
 	// Get the normalized world-space direction of the current ray
 	//float3 worldRayDirection = WorldRayDirection();
@@ -122,7 +137,7 @@ void ClosestHit_2(inout HitInfo payload : SV_RayPayload,
 	//color.xy = vertex.uv.xy;
 	//color = barycentrics;
 	// 
-	payload.ShadedColorAndHitT = float4(color.rgb, RayTCurrent());
+	//payload.ShadedColorAndHitT = float4(color.rgb, RayTCurrent());
 
 	payload.ShadedColorAndHitT = float4(cubemapColor.rgb, RayTCurrent());
 

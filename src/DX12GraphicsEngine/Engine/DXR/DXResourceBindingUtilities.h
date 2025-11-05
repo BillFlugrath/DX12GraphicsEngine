@@ -20,14 +20,12 @@ public:
 	DXResourceBindingUtilities();
 	~DXResourceBindingUtilities();
 
-	HRESULT CreateConstantBufferResources(D3D12Global& d3d, D3DSceneModels& d3dSceneModels,
-		std::vector<D3DTexture>& textures);
+	HRESULT CreateConstantBufferResources(D3D12Global& d3d, D3DSceneModels& d3dSceneModels, D3DSceneTextures& textures2D);
 
-	void CalculateShaderData(D3DSceneModels& d3dSceneModels,
-						std::vector<D3DTexture>& textures);
+	void CalculateShaderData(D3DSceneModels& d3dSceneModels, D3DSceneTextures& textures2D);
 
 	void CreateVertexAndIndexBufferSRVsUnbound(D3D12Global& d3d, DXRGlobal& dxr, D3D12Resources& resources,
-												D3DSceneModels& d3dSceneModels,std::vector<D3DTexture>& textures);
+												D3DSceneModels& d3dSceneModels, D3DSceneTextures& textures2D);
 
 	static const uint32_t kMaxNumMeshObjects = 512;
 	static const uint32_t kMaxNumModelsObjects = 512;
@@ -49,12 +47,22 @@ public:
 
 	};
 
+	struct SceneTextureShaderData
+	{
+		//get the index into srv descriptor array for diffuse textures for a given mesh
+		uint32_t diffuseTextureIndexForMesh[kMaxNumMeshObjects];
+	};
+
 protected:
 
-	//view matrix data and gpu resource
+	
 	ID3D12Resource* m_pSceneShaderDataCB; //constant buffer that holds SceneShaderData data on gpu
 	SceneShaderData	m_SceneShaderData; //cpu struct SceneShaderData
 	UINT8* m_pSceneShaderDataStart; //final bytes mapped to resource for SceneShaderData
+
+	ID3D12Resource* m_pSceneTextureShaderDataCB; //constant buffer that holds SceneShaderData data on gpu
+	SceneTextureShaderData	m_SceneTextureShaderData; //cpu struct SceneShaderData
+	UINT8* m_pSceneTextureShaderDataStart; //final bytes mapped to resource for SceneShaderData
 	
 
 	//--------------------- Debug members --------------------------------------

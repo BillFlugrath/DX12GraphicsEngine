@@ -158,18 +158,32 @@ HRESULT DXRManager::CreateShadersAndRootSignatures()
 
 	HRESULT hr = EXIT_SUCCESS;
 
-	if (m_bUseBoundResources)
+	m_pDXRUtilities->Create_RayGen_Program(d3d, dxr, shaderCompiler, kRayGenFilename);
+	m_pDXRUtilities->Create_Miss_Program(d3d, dxr, shaderCompiler, kMissFilename);
+	m_pDXRUtilities->Create_Closest_Hit_Program(d3d, dxr, shaderCompiler, kClosestHitFilename);
+
+	return hr;
+}
+
+HRESULT DXRManager::CreateShadersAndRootSignaturesUnbound(D3DSceneModels& d3dSceneModels)
+{
+	HRESULT hr = EXIT_SUCCESS;
+
+	std::vector<D3DModel>& models = d3dSceneModels.GetModelObjects();
+	uint32_t numMeshObjects = 0;
+
+	for (auto& model : models)
 	{
-		m_pDXRUtilities->Create_RayGen_Program(d3d, dxr, shaderCompiler, kRayGenFilename);
-		m_pDXRUtilities->Create_Miss_Program(d3d, dxr, shaderCompiler, kMissFilename);
-		m_pDXRUtilities->Create_Closest_Hit_Program(d3d, dxr, shaderCompiler, kClosestHitFilename);
+		uint32_t num_meshes = model.GetMeshObjects().size();
+		numMeshObjects += num_meshes;
 	}
-	else
-	{
-		m_pDXRUtilities->Create_RayGen_Program(d3d, dxr, shaderCompiler, kRayGenUnboundFilename);
-		m_pDXRUtilities->Create_Miss_Program(d3d, dxr, shaderCompiler, kMissUnboundFilename);
-		m_pDXRUtilities->Create_Closest_Hit_Program_Unbound_Resources(d3d, dxr, shaderCompiler, kClosestHitUnboundFilename);
-	}
+ 
+	m_pDXRUtilities->Create_RayGen_Program(d3d, dxr, shaderCompiler, kRayGenUnboundFilename);
+	m_pDXRUtilities->Create_Miss_Program(d3d, dxr, shaderCompiler, kMissUnboundFilename);
+	uint32_t num_mesh_objects_total = 0;
+	m_pDXRUtilities->Create_Closest_Hit_Program_Unbound_Resources(d3d, dxr, shaderCompiler, kClosestHitUnboundFilename,
+		numMeshObjects);
+	
 
 	return hr;
 }
@@ -185,10 +199,10 @@ HRESULT DXRManager::CreateCBVSRVUAVDescriptorHeap(D3DSceneModels& d3dSceneModels
 	return hr;
 }
 
-HRESULT DXRManager::CreateUnboundVertexAndIndexBufferSRVs(D3DSceneModels& d3dSceneModels, std::vector<D3DTexture> textures)
+HRESULT DXRManager::CreateUnboundVertexAndIndexBufferSRVs(D3DSceneModels& d3dSceneModels, D3DSceneTextures& textures2D)
 {
 	HRESULT hr = EXIT_SUCCESS;
-	m_pDXResourceBindingUtilities->CreateVertexAndIndexBufferSRVsUnbound(d3d, dxr, resources, d3dSceneModels, textures);
+	m_pDXResourceBindingUtilities->CreateVertexAndIndexBufferSRVsUnbound(d3d, dxr, resources, d3dSceneModels, textures2D);
 	return hr;
 }
 
@@ -235,6 +249,11 @@ void DXRManager::Update(XMMATRIX& view, XMFLOAT3& cam_pos, float cam_fov)
 	m_pDXResourceUtilities->UpdateCameraCB(d3d, resources, view, cam_pos, cam_fov);
 }
 
+void DXRManager::UpdateUnboundCB(D3DSceneModels& d3dSceneModels, D3DSceneTextures& textures2D)
+{
+	m_pDXResourceBindingUtilities->CalculateShaderData(d3dSceneModels, textures2D);
+}
+
 void DXRManager::Render()
 {
 	m_pDXRUtilities->RenderScene(d3d, dxr, resources);
@@ -262,7 +281,7 @@ void DXRManager::Cleanup()
 		DestroyWindow(window);
 }
 
-void  DXRManager::InitializeUnboundResources(D3DSceneModels& d3dSceneModels, std::vector<D3DTexture>& textures)
+void  DXRManager::InitializeUnboundResources(D3DSceneModels& d3dSceneModels, D3DSceneTextures& textures2D)
 {
-	m_pDXResourceBindingUtilities->CreateConstantBufferResources(d3d, d3dSceneModels, textures);
+	m_pDXResourceBindingUtilities->CreateConstantBufferResources(d3d, d3dSceneModels, textures2D);
 }

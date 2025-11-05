@@ -68,6 +68,7 @@ struct D3DMesh
 	D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView;
 	ComPtr< ID3D12Resource > m_pIndexBuffer;
 	D3D12_INDEX_BUFFER_VIEW m_indexBufferView;
+	uint32_t m_DiffuseTexIndex;
 };
 
 struct D3DModel
@@ -76,6 +77,17 @@ struct D3DModel
 	std::vector<D3DMesh>& GetMeshObjects() { return m_vMeshObjects;}
 	void SetHitGroupIndex(UINT hg) { m_HitGroupIndex = hg; }
 	UINT GetHitGroupIndex() { return m_HitGroupIndex; }
+
+	void SetTexture2DIndex(uint32_t i)
+	{
+		for (auto &mesh : m_vMeshObjects) { mesh.m_DiffuseTexIndex = i;}
+	}
+
+	void SetTexture2DIndexForMesh(uint32_t meshIndex, uint32_t tex_index) 
+	{
+		m_vMeshObjects[meshIndex].m_DiffuseTexIndex = tex_index;
+	}
+	
 
 	std::vector<D3DMesh> m_vMeshObjects;
 	XMMATRIX m_WorldMatrix;
@@ -93,6 +105,14 @@ struct D3DSceneModels
 struct D3DTexture
 {
 	ComPtr< ID3D12Resource > m_pTextureResource;
+};
+
+struct D3DSceneTextures
+{
+	void AddTexture(D3DTexture& t) { m_vTextureObjects.push_back(t); }
+	std::vector<D3DTexture>& GetTextureObjects() { return m_vTextureObjects; }
+
+	std::vector<D3DTexture> m_vTextureObjects;
 };
 
 struct TextureInfo

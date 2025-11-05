@@ -467,7 +467,7 @@ void DXRPipelineStateObject::Create_Shader_Table_Unbound_Resources(D3D12Global& 
 	D3D12_GPU_DESCRIPTOR_HANDLE handle = resources.cbvSrvUavHeap->GetGPUDescriptorHandleForHeapStart();
 	UINT handleIncrement = d3d.device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-	handle.ptr += handleIncrement * 6; //get handle to the 10th descriptor
+	handle.ptr += handleIncrement * 6; //get handle to the 6th descriptor ie the cubemap
 
 	*reinterpret_cast<D3D12_GPU_DESCRIPTOR_HANDLE*>(pData + shaderIdSize) = handle; //set handle to the descriptor
 

@@ -42,6 +42,7 @@ DX12Raytracing_2::DX12Raytracing_2(UINT width, UINT height, std::wstring name) :
 	m_pD3DModel_0 = shared_ptr<D3DModel>(new D3DModel);
 	m_pD3DModel_1 = shared_ptr<D3DModel>(new D3DModel);
 	m_pD3DSceneModels = shared_ptr<D3DSceneModels>(new D3DSceneModels);
+	m_pD3DSceneTextures2D = shared_ptr<D3DSceneTextures>(new D3DSceneTextures);
 }
 
 DX12Raytracing_2::~DX12Raytracing_2()
@@ -60,7 +61,6 @@ void DX12Raytracing_2::CreateRaytracingInterfaces(ID3D12Device* device,
 {
 	ThrowIfFailed(device->QueryInterface(IID_PPV_ARGS(&m_dxrDevice)), L"Couldn't get DirectX Raytracing interface for the device.\n");
 	ThrowIfFailed(commandList->QueryInterface(IID_PPV_ARGS(&m_dxrCommandList)), L"Couldn't get DirectX Raytracing interface for the command list.\n");
-
 }
 
 void DX12Raytracing_2::OnInit()
@@ -68,8 +68,7 @@ void DX12Raytracing_2::OnInit()
 	m_pDXRManager->InitD3D12(m_Width, m_Height, Win32Application::GetHwnd(), false);
 
 	//Set Use unbound resources
-	bool bUseBoundResources = false;
-	m_pDXRManager->SetBoundResources(bUseBoundResources);
+	m_pDXRManager->SetBoundResources(m_bUseBoundResources);
 
 	D3D12Global d3d = m_pDXRManager->GetD3DGlobal();
 	m_dxrDevice = d3d.device;
@@ -84,12 +83,18 @@ void DX12Raytracing_2::OnInit()
 	m_pD3DModel_0->SetHitGroupIndex(0);
 	m_pD3DModel_1->SetHitGroupIndex(1);
 
+	//These are for Bound textures
 	D3DTexture tex0,tex1,tex2;
 	tex0.m_pTextureResource = m_pDXTexture_0->GetDX12Resource();
 	tex1.m_pTextureResource = m_pDXTexture_1->GetDX12Resource();
 	tex2.m_pTextureResource = m_pDDSCubeMap_0->GetDX12Resource();
 
-	std::vector< D3DTexture > vTextures{ tex0, tex1, tex2 };
+	std::vector< D3DTexture > vTextures{ tex0, tex1, tex2 }; //bound textures
+
+	//m_pD3DSceneTextures2D holds unbound textures
+	m_pD3DSceneTextures2D->AddTexture(tex0); //index 0
+	m_pD3DSceneTextures2D->AddTexture(tex1);  //index 1
+
 
 	//create constant buffers
 	int width = 0, height = 0, width1 = 0, height1 = 0;
@@ -112,22 +117,39 @@ void DX12Raytracing_2::OnInit()
 	//m_pD3DModel_1 has 1 mesh
 	m_pD3DModel_1->AddMesh(mesh2);
 
+	//SetTexture2DIndex sets the same index for all meshes in model
+	m_pD3DModel_0->SetTexture2DIndex(0);
+	m_pD3DModel_1->SetTexture2DIndex(1);
+
+	m_pD3DModel_0->SetTexture2DIndexForMesh(0, 1); //set mesh0 texture1
+
+
+
 	//Create the Final Scene by adding models to a vector.  Each model becomes a  TLAS instance
 	m_pD3DSceneModels->AddModel(*m_pD3DModel_0);
 	m_pD3DSceneModels->AddModel(*m_pD3DModel_1);
 	
 	
 	m_pDXRManager->CreateTopAndBottomLevelAS(*m_pD3DSceneModels); 
-	m_pDXRManager->CreateShadersAndRootSignatures();
+
+	if (m_bUseBoundResources == true)
+	{
+		m_pDXRManager->CreateShadersAndRootSignatures();
+	}
+	else
+	{
+		m_pDXRManager->CreateShadersAndRootSignaturesUnbound(*m_pD3DSceneModels);
+	}
+	
 
 	//create constant buffer D3D12 resources. The CBV (view descriptors) are made after in CreateCBVSRVUAVDescriptorHeap
 	m_pDXRManager->CreateConstantBufferResources((float)width);
-	m_pDXRManager->CreateCBVSRVUAVDescriptorHeap(*m_pD3DSceneModels, vTextures);
+	m_pDXRManager->CreateCBVSRVUAVDescriptorHeap(*m_pD3DSceneModels, vTextures);  //Sets BOUND textures and bound models
 
-	if (bUseBoundResources==false)
+	if (m_bUseBoundResources==false)
 	{
-		m_pDXRManager->InitializeUnboundResources(*m_pD3DSceneModels, vTextures);
-		m_pDXRManager->CreateUnboundVertexAndIndexBufferSRVs(*m_pD3DSceneModels, vTextures);
+		m_pDXRManager->InitializeUnboundResources(*m_pD3DSceneModels, *m_pD3DSceneTextures2D);
+		m_pDXRManager->CreateUnboundVertexAndIndexBufferSRVs(*m_pD3DSceneModels, *m_pD3DSceneTextures2D);
 	}
 
 	m_pDXRManager->Create_PSO_and_ShaderTable();
@@ -172,6 +194,7 @@ void DX12Raytracing_2::OnUpdate()
 {
 	m_pDXCamera->Update();
 	m_pDXRManager->Update(m_pDXCamera->GetViewMatrix(), m_pDXCamera->GetPosition(), m_pDXCamera->GetFOV());
+	//m_pDXRManager->UpdateUnboundCB(*m_pD3DSceneModels, *m_pD3DSceneTextures2D);
 }
 
 void DX12Raytracing_2::OnRender()
