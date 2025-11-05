@@ -131,13 +131,15 @@ void ClosestHit_2(inout HitInfo payload : SV_RayPayload,
 	//float3 worldRayDirection = WorldRayDirection();
 
 	// Sample the cubemap texture using the normalized ray direction
-	float4 cubemapColor = cubeMap_0.SampleLevel(g_SamplerState, normalize(vertex.normal),0);
+	float3 reflct = reflect(WorldRayDirection(), normalize(vertex.normal));
+	float4 cubemapColor = cubeMap_0.SampleLevel(g_SamplerState, normalize(reflct),0);
 
 	
 	//color.xy = vertex.uv.xy;
 	//color = barycentrics;
 	// 
 	//payload.ShadedColorAndHitT = float4(color.rgb, RayTCurrent());
+	
 
 	payload.ShadedColorAndHitT = float4(cubemapColor.rgb, RayTCurrent());
 

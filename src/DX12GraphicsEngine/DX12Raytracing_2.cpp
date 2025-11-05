@@ -188,7 +188,7 @@ void DX12Raytracing_2::LoadModelsAndTextures()
 	//load cube map
 	ID3D12Device* device = static_cast<ID3D12Device*>(m_dxrDevice);
 	ID3D12GraphicsCommandList* cmdList= static_cast<ID3D12GraphicsCommandList*>(m_dxrCommandList);
-	const wchar_t* szFileName = L"./assets/textures/CubeMaps/sunsetcube1024.dds";
+	const wchar_t* szFileName = L"./assets/textures/CubeMaps/snowcube1024.dds";
 
 	m_pDDSCubeMap_0->CreateDDSTextureFromFile12(device, pCommandQueue, szFileName);
 }
