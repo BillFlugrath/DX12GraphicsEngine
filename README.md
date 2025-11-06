@@ -1,4 +1,4 @@
-DX12GraphicsEngine is a Visual Studio project that contains the boilerplate code to render 3D assets using Direct X 12.  It's a starting point to build DX12 applications that will do complex graphics rendering in C++ and HLSL.  
+DX12GraphicsEngine is a Visual Studio project that contains the boilerplate code to render 3D assets using DirectX 12.  It's a starting point to build DX12 applications that will do complex graphics rendering in C++ and HLSL.  
 
 It contains a few demo applications that show how to setup DX12 for rendering.  These applications include standard rendering as well as ray tracing with DXR.
 
