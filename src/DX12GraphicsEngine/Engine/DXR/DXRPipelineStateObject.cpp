@@ -63,7 +63,7 @@ void DXRPipelineStateObject::Init(std::shared_ptr< DXShaderUtilities > pDXShader
 
 void DXRPipelineStateObject::Create_Pipeline_State_Object(D3D12Global& d3d, DXRGlobal& dxr)
 {
-	// Need 12 subobjects:
+	// Need 14 subobjects:
 	// 1 for RGS program
 	// 1 for Miss program
 	// 1 for CHS program

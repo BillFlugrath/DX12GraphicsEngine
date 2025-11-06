@@ -121,6 +121,8 @@ AccelerationStructureBuffer BLAS_TLAS_Utilities::createBottomLevelAS(ID3D12Devic
         geomDesc[i].Triangles.VertexBuffer.StrideInBytes = sizeof(ModelVertex);
         geomDesc[i].Triangles.VertexCount = vertexCount[i]; //number of vertices in the VB
         geomDesc[i].Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;
+
+        // !! Using D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE means the "ANY HIT" will NOT be executed !!
         geomDesc[i].Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
     }
 

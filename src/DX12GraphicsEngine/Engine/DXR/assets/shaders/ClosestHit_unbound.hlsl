@@ -2,6 +2,42 @@
 #include "Common_unbound.hlsl"
 
 
+struct ShadowPayload
+{
+	bool hit;
+};
+
+[shader("closesthit")]
+void shadowChs(inout ShadowPayload payload, in BuiltInTriangleIntersectionAttributes attribs)
+{
+	payload.hit = true;
+}
+
+[shader("miss")]
+void shadowMiss(inout ShadowPayload payload)
+{
+	payload.hit = false;
+}
+
+void CastShadowRay()
+{
+	float hitT = RayTCurrent();
+	float3 rayDirW = WorldRayDirection();
+	float3 rayOriginW = WorldRayOrigin();
+
+	// Find the world-space hit position
+	float3 posW = rayOriginW + hitT * rayDirW;
+
+	// Fire a shadow ray. The direction is hard-coded here, but can be fetched from a constant-buffer
+	RayDesc ray;
+	ray.Origin = posW;
+	ray.Direction = normalize(float3(0.5, 0.5, -0.5));  //ray direction  toward light source
+	ray.TMin = 0.01;
+	ray.TMax = 100000;
+	ShadowPayload shadowPayload;
+	TraceRay(SceneBVH, 0  /*rayFlags*/, 0xFF, 1 /* ray index*/, 0, 1, ray, shadowPayload);
+}
+
 // ---[ Closest Hit Shader ]---
 
 [shader("closesthit")]
@@ -15,11 +51,6 @@ void ClosestHit(inout HitInfo payload : SV_RayPayload,
 	float3 barycentrics = float3((1.0f - attrib.uv.x - attrib.uv.y), attrib.uv.x, attrib.uv.y);
 	VertexAttributes vertex = GetVertexAttributes(triangleIndex, barycentrics);
 
-	//vertex.normal *= 0.5;
-	//vertex.normal += 0.5;
-	//payload.ShadedColorAndHitT = float4(vertex.normal, RayTCurrent());
-	
-
 	vertex.uv.y = 1.0f - vertex.uv.y; //flip they coord
 
 	//calculate texel row,col and load unfiltered texel from texture object's gpu memory
@@ -27,12 +58,19 @@ void ClosestHit(inout HitInfo payload : SV_RayPayload,
 	//float3 color = albedo.Load(int3(coord, 0)).rgb;
 
 	//sample the texture with regular uv coords via a sampler with filter settings
-	// float3 color = albedo.Sample(g_SamplerState, vertex.uv); //The "Sample" function does NOT work, use SampleLevel
+	//The "Texture.Sample" function automatically calculates the appropriate mip level using implicit derivatives (ddx/ddy)
+	// of the texture coordinates.  These derivatives are only available in a PS and therefore can't be used
+	//in RT, geometry, vertex or compute shaders.  Thus we use SampleLevel and specify the mip level.
 
 	uint meshIndex = GetMeshIndex();
 	uint texIndex = diffuseTextureIndexForMesh[meshIndex].x;
 	float3 color = diffuse_textures[texIndex].SampleLevel(g_SamplerState, vertex.uv, 0);
-	//color.xy = vertex.uv.xy;
+
+	//CastShadowRay();
+	//float factor = shadowPayload.hit ? 0.1 : 1.0;
+
+	float factor = 1.0f;
+	color = color * factor;
 
 	payload.ShadedColorAndHitT = float4(color, RayTCurrent());
 
@@ -75,44 +113,15 @@ void ClosestHit_2(inout HitInfo payload : SV_RayPayload,
 	float3 barycentrics = float3((1.0f - attrib.uv.x - attrib.uv.y), attrib.uv.x, attrib.uv.y);
 	VertexAttributes vertex = GetVertexAttributes(triangleIndex, barycentrics);
 
-	//vertex.normal *= 0.5;
-	//vertex.normal += 0.5;
-	//payload.ShadedColorAndHitT = float4(vertex.normal, RayTCurrent());
-	//return;
-
-	/*
-	uint instID = InstanceID(); //InstanceID is a TLAS instance index set in app
-	if (instID == 1)
-	{
-		float3 c = float3(0, 1, 1);
-		payload.ShadedColorAndHitT = float4(c, RayTCurrent());
-		return;
-	}
-	*/
-
-	//flip they coord
-
-	int2 coord = floor(vertex.uv * textureResolution.x);
-
 	//uint meshIndex = GetMeshIndex();
 	//uint texIndex = diffuseTextureIndexForMesh[meshIndex];
 	//float3 color = diffuse_textures[texIndex].Load(int3(coord, 0)).rgb;
-
-	// Get the normalized world-space direction of the current ray
-	//float3 worldRayDirection = WorldRayDirection();
 
 	// Sample the cubemap texture using the normalized ray direction
 	float3 reflct = reflect(WorldRayDirection(), normalize(vertex.normal));
 	float4 cubemapColor = cubeMap_0.SampleLevel(g_SamplerState, normalize(reflct),0);
 
-	
-	//color.xy = vertex.uv.xy;
-	//color = barycentrics;
-	// 
-	//payload.ShadedColorAndHitT = float4(color.rgb, RayTCurrent());
-	
-
 	payload.ShadedColorAndHitT = float4(cubemapColor.rgb, RayTCurrent());
 
-	//payload.ShadedColorAndHitT = float4(1, 1, 0, 1); //BillF test
 }
+
