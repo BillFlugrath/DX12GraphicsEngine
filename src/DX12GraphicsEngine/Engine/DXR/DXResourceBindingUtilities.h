@@ -41,8 +41,8 @@ public:
 		//meshes in the model ie the number of vertex buffers in the model.  For ex, if numberOfMeshes[0]=3,
 		//then model 0 has 3 unique mesh objects (ie 3 unique vertex buffers).
 
-		//CB arrays must have EACH element on 16 byte boundary, thus we are using float4
-		XMFLOAT4 numberOfMeshes[kShaderDataArraySize];  //only use x component
+		//CB arrays must have EACH element on 16 byte boundary, thus we are using XMUINT4
+		XMUINT4 numberOfMeshes[kShaderDataArraySize];  //only use x component
 	};
 
 
@@ -55,8 +55,8 @@ public:
 		//We then use that index into the actual texture array "diffuse_textures"  For ex, if texIndex=1, then the
 		//texture2D resource is accessed via diffuse_textures[1] ie diffuse_textures[texIndex].
 
-		//CB arrays must have EACH element on 16 byte boundary, thus we are using float4
-		XMFLOAT4 diffuseTextureIndexForMesh[kShaderDataArraySize]; //only use x component
+		//CB arrays must have EACH element on 16 byte boundary, thus we are using XMUINT4
+		XMUINT4 diffuseTextureIndexForMesh[kShaderDataArraySize]; //only use x component
 	};
 
 protected:
