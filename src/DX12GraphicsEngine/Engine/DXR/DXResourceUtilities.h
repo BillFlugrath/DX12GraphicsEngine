@@ -13,7 +13,7 @@ public:
 	DXResourceUtilities();
 	~DXResourceUtilities();
 
-	//creates sampler in a sampler descriptor heap.  This descriptor heap is currently NOT used since we use
+	//creates sampler in a sampler descriptor heap.  This descriptor heap is currently NOT used since we create
 	//a static sampler when creating shader signatures.
 	void Create_Samplers(D3D12Global& d3d, D3D12Resources& resources);
 

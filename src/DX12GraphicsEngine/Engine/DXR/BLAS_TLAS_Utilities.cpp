@@ -207,12 +207,15 @@ AccelerationStructureBuffer BLAS_TLAS_Utilities::createTopLevelAS(ID3D12Device5*
         instanceDescs[i].InstanceContributionToHitGroupIndex = d3dModels[i].GetHitGroupIndex();  
         instanceDescs[i].Flags = D3D12_RAYTRACING_INSTANCE_FLAG_NONE;
 
-        //BillF added transform
         instanceDescs[i].Transform[0][0] = instanceDescs[i].Transform[1][1] = instanceDescs[i].Transform[2][2] = 1; 
-        instanceDescs[i].Transform[0][3] = 1.5f*i;//offset on x axis
+  
+        //set position in matrix
+        instanceDescs[i].Transform[0][3] = d3dModels[i].m_World4x4(3, 0);
+        instanceDescs[i].Transform[1][3] = d3dModels[i].m_World4x4(3, 1);
+        instanceDescs[i].Transform[2][3] = d3dModels[i].m_World4x4(3, 2);
 
        // mat4 m = transpose(transformation[i]); // GLM is column major, the INSTANCE_DESC is row major
-      //  memcpy(instanceDescs[i].Transform, &m, sizeof(instanceDescs[i].Transform));
+       // memcpy(instanceDescs[i].Transform, &d3dModels[i].m_World4x4, sizeof(instanceDescs[i].Transform));
 
         //Assumes 1 acceleration structure per model.  Each BLAS resource contains all of the VBs for a single model.
         instanceDescs[i].AccelerationStructure = pBottomLevelAS[i]->GetGPUVirtualAddress(); //address of BLAS resource

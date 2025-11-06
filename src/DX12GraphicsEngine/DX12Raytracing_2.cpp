@@ -72,7 +72,7 @@ void DX12Raytracing_2::OnInit()
 	//load assets from disk and create D3D resources
 	LoadModelsAndTextures();
 
-	//Create the Final Scene by adding models to a vector.  Each model becomes a  TLAS instance
+	//Create the Scene by adding models to a vector.  Each model will become a TLAS instance
 	int numModels = 3;
 	for (int i = 0; i < numModels; ++i)
 	{
@@ -81,12 +81,17 @@ void DX12Raytracing_2::OnInit()
 
 	std::vector<D3DModel> &vModelObjects = m_pD3DSceneModels->GetModelObjects();
 
-	//Set hit group for TLAS objects
+	//Set world space position of the models
+	vModelObjects[0].SetPosition(0, 0, 0);
+	vModelObjects[1].SetPosition(1.5, 0, 0);
+	vModelObjects[2].SetPosition(3.0, 0, 0);
+
+	//Set hit group for TLAS objects ie set hit group for each model
 	vModelObjects[0].SetHitGroupIndex(0);
 	vModelObjects[1].SetHitGroupIndex(1);
 	vModelObjects[2].SetHitGroupIndex(0);
 
-	//Create D3DTexture for later processing
+	//Create D3DTexture objects
 	D3DTexture tex0,tex1,tex2,tex3, tex4;
 	tex0.m_pTextureResource = m_vTextureObjects[0]->GetDX12Resource();
 	tex1.m_pTextureResource = m_vTextureObjects[1]->GetDX12Resource();
@@ -94,6 +99,7 @@ void DX12Raytracing_2::OnInit()
 	tex3.m_pTextureResource = m_vTextureObjects[3]->GetDX12Resource();
 	tex4.m_pTextureResource = m_pDDSCubeMap_0->GetDX12Resource(); //cubemap is  m_vTextureObjects[4]
 
+	//this vector is for bound textures (ie not in a texture array).  There are only a few.
 	std::vector< D3DTexture > vBoundTextures{ tex0, tex1, tex4 }; //bound textures
 
 	//m_pD3DSceneTextures2D holds unbound textures of type textures2D
@@ -115,20 +121,20 @@ void DX12Raytracing_2::OnInit()
 	DXGraphicsUtilities::CreateD3DMesh(m_vMeshObjects[1], &mesh1); //teapot
 	DXGraphicsUtilities::CreateD3DMesh(m_vMeshObjects[2], &mesh2); //sphere
 	DXGraphicsUtilities::CreateD3DMesh(m_vMeshObjects[3], &mesh3); //axes
-	DXGraphicsUtilities::CreateD3DMesh(m_vMeshObjects[4], &mesh4); //plane
+	DXGraphicsUtilities::CreateD3DMesh(m_vMeshObjects[4], &mesh4); //cylinder
 
 	
 	//Add mesh objects to the D3DModel objects.  The meshes have the actual ib and vb resources.
 	vModelObjects[0].AddMesh(mesh0);
 	vModelObjects[0].AddMesh(mesh3);
-	//vModelObjects[0].AddMesh(mesh3);
 
 	//m_pD3DModel_1 has 1 mesh
 	vModelObjects[1].AddMesh(mesh2);
 
 	vModelObjects[2].AddMesh(mesh4);
 
-	// SetTexture2DIndex sets the same index for all meshes in model
+	// SetTexture2DIndex sets the same index for all meshes in model.  This sets the diffuse (albedo) texture for the
+	//mesh objects by setting a numeric index that is used in an unbound array of texture2D objects.
 	vModelObjects[0].SetTexture2DIndex(0);
 	vModelObjects[1].SetTexture2DIndex(1);
 	vModelObjects[2].SetTexture2DIndex(3);
@@ -139,6 +145,7 @@ void DX12Raytracing_2::OnInit()
 	//Create BLAS and TLAS
 	m_pDXRManager->CreateTopAndBottomLevelAS(*m_pD3DSceneModels); 
 
+	//Create signatures and load shaders
 	if (m_bUseBoundResources == true)
 	{
 		m_pDXRManager->CreateShadersAndRootSignatures();
@@ -151,6 +158,7 @@ void DX12Raytracing_2::OnInit()
 
 	//create constant buffer D3D12 resources. The CBV (view descriptors) are made after in CreateCBVSRVUAVDescriptorHeap
 	m_pDXRManager->CreateConstantBufferResources((float)width); //Used for texture.LOAD.  TODO just use sampler.
+	
 	m_pDXRManager->CreateCBVSRVUAVDescriptorHeap(*m_pD3DSceneModels, vBoundTextures);  //Sets BOUND textures and bound models
 
 	if (m_bUseBoundResources==false)

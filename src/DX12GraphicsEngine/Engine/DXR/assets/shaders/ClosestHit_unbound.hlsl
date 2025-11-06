@@ -2,8 +2,6 @@
 #include "Common_unbound.hlsl"
 
 
-
-
 // ---[ Closest Hit Shader ]---
 
 [shader("closesthit")]
@@ -21,25 +19,6 @@ void ClosestHit(inout HitInfo payload : SV_RayPayload,
 	//vertex.normal += 0.5;
 	//payload.ShadedColorAndHitT = float4(vertex.normal, RayTCurrent());
 	
-	/*
-	uint geoIndex = GeometryIndex();  //GeometryIndex is a BLAS index set automatically.  1 index for each vertex buffer.
-	if (geoIndex == 0)
-	{
-		float3 c = float3(1, 0, 0);
-		payload.ShadedColorAndHitT = float4(c, RayTCurrent());
-	}
-	else if (geoIndex == 1)
-	{
-		float3 c = float3(0, 1, 0);
-		payload.ShadedColorAndHitT = float4(c, RayTCurrent());
-	}
-	else if (geoIndex == 2)
-	{
-		float3 c = float3(0, 0, 1);
-		payload.ShadedColorAndHitT = float4(c, RayTCurrent());
-	}
-	*/
-	//return;
 
 	vertex.uv.y = 1.0f - vertex.uv.y; //flip they coord
 

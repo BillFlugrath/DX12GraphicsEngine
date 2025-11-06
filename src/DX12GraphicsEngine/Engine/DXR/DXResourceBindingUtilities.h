@@ -27,9 +27,9 @@ public:
 	void CreateVertexAndIndexBufferSRVsUnbound(D3D12Global& d3d, DXRGlobal& dxr, D3D12Resources& resources,
 												D3DSceneModels& d3dSceneModels, D3DSceneTextures& textures2D);
 
+
 	static const uint32_t kShaderDataArraySize = 128;
-	
-	//__declspec(align(16)) 
+	 
 	struct SceneShaderData
 	{
 		uint32_t numberOfModelsTotal; //total number of models in scene
@@ -40,8 +40,9 @@ public:
 		//each index into the array is a model index ie InstanceID. The value at each index is the number of
 		//meshes in the model ie the number of vertex buffers in the model.  For ex, if numberOfMeshes[0]=3,
 		//then model 0 has 3 unique mesh objects (ie 3 unique vertex buffers).
-		XMFLOAT4 numberOfMeshes[kShaderDataArraySize];  //only use x component
 
+		//CB arrays must have EACH element on 16 byte boundary, thus we are using float4
+		XMFLOAT4 numberOfMeshes[kShaderDataArraySize];  //only use x component
 	};
 
 
@@ -50,16 +51,16 @@ public:
 	struct SceneTextureShaderData
 	{
 		//store the index into srv descriptor array for diffuse textures for all mesh objs.  For example, for mesh 5,
-		//uint texIndex=diffuseTextureIndexForMesh[5].  Thus, we lookup the index of the texture used by mesh 5.
+		//uint texIndex=diffuseTextureIndexForMesh[5].x.  Thus, we lookup the index of the albedo texture used by mesh 5.
 		//We then use that index into the actual texture array "diffuse_textures"  For ex, if texIndex=1, then the
-		//texture2D resource is accessed via diffuse_textures[texIndex] ie diffuse_textures[texIndex].
+		//texture2D resource is accessed via diffuse_textures[1] ie diffuse_textures[texIndex].
 
+		//CB arrays must have EACH element on 16 byte boundary, thus we are using float4
 		XMFLOAT4 diffuseTextureIndexForMesh[kShaderDataArraySize]; //only use x component
 	};
 
 protected:
 
-	
 	ID3D12Resource* m_pSceneShaderDataCB; //constant buffer that holds SceneShaderData data on gpu
 	SceneShaderData	m_SceneShaderData; //cpu struct SceneShaderData
 	UINT8* m_pSceneShaderDataStart; //final bytes mapped to resource for SceneShaderData

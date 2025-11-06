@@ -68,11 +68,23 @@ struct D3DMesh
 	D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView;
 	ComPtr< ID3D12Resource > m_pIndexBuffer;
 	D3D12_INDEX_BUFFER_VIEW m_indexBufferView;
-	uint32_t m_DiffuseTexIndex;
+	uint32_t m_DiffuseTexIndex = 0;
 };
 
 struct D3DModel
 {
+	D3DModel()
+	{
+		m_WorldMatrix = XMMatrixIdentity();
+	}
+
+	void SetPosition(float x, float y, float z)
+	{
+		::XMStoreFloat4x4(&m_World4x4, m_WorldMatrix);
+		m_World4x4(3, 0) = x; m_World4x4(3, 1) = y; m_World4x4(3, 2) = z;
+		m_WorldMatrix = XMLoadFloat4x4(&m_World4x4);
+	}
+
 	void AddMesh(D3DMesh& m) { m_vMeshObjects.push_back(m); }
 	std::vector<D3DMesh>& GetMeshObjects() { return m_vMeshObjects;}
 	void SetHitGroupIndex(UINT hg) { m_HitGroupIndex = hg; }
@@ -91,6 +103,7 @@ struct D3DModel
 
 	std::vector<D3DMesh> m_vMeshObjects;
 	XMMATRIX m_WorldMatrix;
+	XMFLOAT4X4 m_World4x4;
 	UINT m_HitGroupIndex = 0;
 };
 
