@@ -84,7 +84,7 @@ void DX12Raytracing_2::OnInit()
 	//Set world space position of the models
 	vModelObjects[0].SetPosition(0, 0, 0);
 	vModelObjects[1].SetPosition(1.5, 0, 0);
-	vModelObjects[2].SetPosition(3.0, 0, 0);
+	vModelObjects[2].SetPosition(-50, -1.0, -50);
 
 	//Set hit group for TLAS objects ie set hit group for each model
 	vModelObjects[0].SetHitGroupIndex(0);
@@ -121,7 +121,7 @@ void DX12Raytracing_2::OnInit()
 	DXGraphicsUtilities::CreateD3DMesh(m_vMeshObjects[1], &mesh1); //teapot
 	DXGraphicsUtilities::CreateD3DMesh(m_vMeshObjects[2], &mesh2); //sphere
 	DXGraphicsUtilities::CreateD3DMesh(m_vMeshObjects[3], &mesh3); //axes
-	DXGraphicsUtilities::CreateD3DMesh(m_vMeshObjects[4], &mesh4); //cylinder
+	DXGraphicsUtilities::CreateD3DMesh(m_vMeshObjects[4], &mesh4); //plane
 
 	
 	//Add mesh objects to the D3DModel objects.  The meshes have the actual ib and vb resources.
@@ -183,7 +183,7 @@ void DX12Raytracing_2::LoadModelsAndTextures()
 	m_vMeshObjects[1]->LoadModelFromFile("./assets/models/unitTeapot.obj", static_cast<ID3D12Device*>(m_dxrDevice));
 	m_vMeshObjects[2]->LoadModelFromFile("./assets/models/unitsphere.obj", static_cast<ID3D12Device*>(m_dxrDevice));
 	m_vMeshObjects[3]->LoadModelFromFile("./assets/models/axes.obj", static_cast<ID3D12Device*>(m_dxrDevice));
-	m_vMeshObjects[4]->LoadModelFromFile("./assets/models/cylinder.obj", static_cast<ID3D12Device*>(m_dxrDevice));
+	m_vMeshObjects[4]->LoadModelFromFile("./assets/models/plane300x300.obj", static_cast<ID3D12Device*>(m_dxrDevice));
 
 	//load 2d textures
 	for (int i = 0; i < 5; ++i)

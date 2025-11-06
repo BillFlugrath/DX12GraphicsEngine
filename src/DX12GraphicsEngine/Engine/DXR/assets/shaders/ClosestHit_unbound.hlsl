@@ -32,7 +32,8 @@ void ClosestHit(inout HitInfo payload : SV_RayPayload,
 	uint meshIndex = GetMeshIndex();
 	uint texIndex = diffuseTextureIndexForMesh[meshIndex].x;
 	float3 color = diffuse_textures[texIndex].SampleLevel(g_SamplerState, vertex.uv, 0);
-	
+	//color.xy = vertex.uv.xy;
+
 	payload.ShadedColorAndHitT = float4(color, RayTCurrent());
 
 }
