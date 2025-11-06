@@ -49,7 +49,7 @@ void DXResourceBindingUtilities::CalculateShaderData(D3DSceneModels& d3dSceneMod
 		uint32_t num_meshes = model.GetMeshObjects().size();
 		num_mesh_objects_total += num_meshes;
 
-		m_SceneShaderData.numberOfMeshes[modelIndex] = num_meshes;
+		m_SceneShaderData.numberOfMeshes[modelIndex].x = num_meshes;
 		modelIndex++;
 
 		std::vector<D3DMesh> meshObjects = model.GetMeshObjects();
@@ -57,7 +57,7 @@ void DXResourceBindingUtilities::CalculateShaderData(D3DSceneModels& d3dSceneMod
 		{
 			uint32_t diffuseIndex = mesh.m_DiffuseTexIndex;
 
-			m_SceneTextureShaderData.diffuseTextureIndexForMesh[meshIndex] = diffuseIndex; //store albedo texture for this mesh
+			m_SceneTextureShaderData.diffuseTextureIndexForMesh[meshIndex].x = diffuseIndex; //store albedo texture for this mesh
 			meshIndex++;
 		}
 	}
@@ -71,16 +71,18 @@ void DXResourceBindingUtilities::CalculateShaderData(D3DSceneModels& d3dSceneMod
 	HRESULT hr = m_pSceneShaderDataCB->Map(0, nullptr, reinterpret_cast<void**>(&m_pSceneShaderDataStart));
 	Utils::Validate(hr, L"Error: failed to map Material constant buffer!");
 
+	//map start of constant buffer to the pointer m_pSceneShaderDataStart
+	hr = m_pSceneTextureShaderDataCB->Map(0, nullptr, reinterpret_cast<void**>(&m_pSceneTextureShaderDataStart));
+	Utils::Validate(hr, L"Error: failed to map Material constant buffer!");
+
+	
 	//copy data into the constant buffer
 	memcpy(m_pSceneShaderDataStart, &m_SceneShaderData, sizeof(m_SceneShaderData));
 
 	m_pSceneShaderDataCB->Unmap(0, nullptr);
 
 
-	//map start of constant buffer to the pointer m_pSceneShaderDataStart
-	hr = m_pSceneTextureShaderDataCB->Map(0, nullptr, reinterpret_cast<void**>(&m_pSceneTextureShaderDataStart));
-	Utils::Validate(hr, L"Error: failed to map Material constant buffer!");
-
+	
 	//copy data into the constant buffer
 	memcpy(m_pSceneTextureShaderDataStart, &m_SceneTextureShaderData, sizeof(m_SceneTextureShaderData));
 
@@ -116,12 +118,21 @@ void  DXResourceBindingUtilities::CreateVertexAndIndexBufferSRVsUnbound(D3D12Glo
 	cbvDesc.SizeInBytes = ALIGN(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT, sizeof(SceneShaderData));
 	cbvDesc.BufferLocation = m_pSceneShaderDataCB->GetGPUVirtualAddress();
 
+
+	if (_DEBUG)
+		m_pSceneShaderDataCB->SetName(L"m_pSceneShaderDataCB");
+
 	//create the descriptor in the heap location "handle".  dont confuse handle (ie location of descriptor) with actual data of the buffer
 	//stored at "cbvDesc.BufferLocation".  The constant buffer view is for the SceneShaderData CB
 	d3d.device->CreateConstantBufferView(&cbvDesc, handle);
 
 	//make next CB for TextureShaderData
+	cbvDesc.SizeInBytes = ALIGN(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT, sizeof(SceneTextureShaderData));
 	cbvDesc.BufferLocation = m_pSceneTextureShaderDataCB->GetGPUVirtualAddress();
+	
+
+	if (_DEBUG)
+		m_pSceneTextureShaderDataCB->SetName(L"m_pSceneTextureShaderDataCB");
 
 	handle.ptr += handleIncrement;
 	d3d.device->CreateConstantBufferView(&cbvDesc, handle);
@@ -171,7 +182,7 @@ void  DXResourceBindingUtilities::CreateVertexAndIndexBufferSRVsUnbound(D3D12Glo
 			GeometryIndex++;
 		}
 
-		m_SceneShaderData.numberOfMeshes[modelIndex] = GeometryIndex;
+		m_SceneShaderData.numberOfMeshes[modelIndex].x = GeometryIndex;
 		modelIndex++;
 	}
 
@@ -195,5 +206,4 @@ void  DXResourceBindingUtilities::CreateVertexAndIndexBufferSRVsUnbound(D3D12Glo
 	m_SceneShaderData.numberOfMeshObjectsTotal = num_mesh_objects_total;
 	m_SceneShaderData.numberOfModelsTotal = num_models;
 	m_SceneShaderData.numberOfDiffuseTexturesTotal = textures.size();
-	//m_SceneShaderData.diffuseTextureIndexForMesh TODO elsewhere
 }

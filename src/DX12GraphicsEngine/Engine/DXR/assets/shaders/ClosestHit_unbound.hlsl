@@ -51,17 +51,8 @@ void ClosestHit(inout HitInfo payload : SV_RayPayload,
 	// float3 color = albedo.Sample(g_SamplerState, vertex.uv); //The "Sample" function does NOT work, use SampleLevel
 
 	uint meshIndex = GetMeshIndex();
-	uint texIndex = diffuseTextureIndexForMesh[meshIndex];
+	uint texIndex = diffuseTextureIndexForMesh[meshIndex].x;
 	float3 color = diffuse_textures[texIndex].SampleLevel(g_SamplerState, vertex.uv, 0);
-
-	/*
-	if (diffuseTextureIndexForMesh[0] == 1)
-	{
-		float3 color = float3(1, 1, 0);
-		payload.ShadedColorAndHitT = float4(color, RayTCurrent());
-		return;
-	}
-	*/
 	
 	payload.ShadedColorAndHitT = float4(color, RayTCurrent());
 

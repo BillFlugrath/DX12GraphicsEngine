@@ -43,21 +43,14 @@ public:
 
 	std::shared_ptr<DXCamera> m_pDXCamera;
 
-	std::shared_ptr<DXMesh> m_pDXMesh_0;
-	std::shared_ptr<DXMesh> m_pDXMesh_1;
-	std::shared_ptr<DXMesh> m_pDXMesh_2;
-	std::shared_ptr<DXMesh> m_pDXMesh_3;
-
-	std::shared_ptr<D3DModel> m_pD3DModel_0;
-	std::shared_ptr<D3DModel> m_pD3DModel_1;
+	std::vector< std::shared_ptr<DXMesh> > m_vMeshObjects;
 
 	std::shared_ptr<D3DSceneModels> m_pD3DSceneModels;
 	std::shared_ptr<D3DSceneTextures> m_pD3DSceneTextures2D;
 
-	std::shared_ptr<DXTexture> m_pDXTexture_0;
-	std::shared_ptr<DXTexture> m_pDXTexture_1;
-	std::shared_ptr<DXTexture> m_pDXTexture_2;
+	std::vector< std::shared_ptr<DXTexture> > m_vTextureObjects;
 	std::shared_ptr<DXTexture> m_pDDSCubeMap_0;
+
 
 	//DXDescriptorHeap* descriptor_heap_srv_;
 

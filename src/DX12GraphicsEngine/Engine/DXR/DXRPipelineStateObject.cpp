@@ -357,8 +357,8 @@ void DXRPipelineStateObject::Create_Shader_Table(D3D12Global& d3d, DXRGlobal& dx
 	uint32_t sbtSize = 0;
 
 	dxr.sbtEntrySize = shaderIdSize;
-//	dxr.sbtEntrySize += 8;					// CBV/SRV/UAV descriptor table BillF off since we added many more descriptors
-	dxr.sbtEntrySize += 11;					// CBV/SRV/UAV descriptor table  BillF updated the entry size
+	dxr.sbtEntrySize += 8;					// CBV/SRV/UAV descriptor table BillF off since we added many more descriptors
+	//dxr.sbtEntrySize += 11;					// CBV/SRV/UAV descriptor table  BillF updated the entry size
 	dxr.sbtEntrySize = ALIGN(D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT, dxr.sbtEntrySize);
 
 	sbtSize = (dxr.sbtEntrySize * numberOfRecords);		// 4 shader records in the table
@@ -434,8 +434,8 @@ void DXRPipelineStateObject::Create_Shader_Table_Unbound_Resources(D3D12Global& 
 	uint32_t sbtSize = 0;
 
 	dxr.sbtEntrySize = shaderIdSize;
-	//	dxr.sbtEntrySize += 8;					// CBV/SRV/UAV descriptor table BillF off since we added many more descriptors
-	dxr.sbtEntrySize += 11;					// CBV/SRV/UAV descriptor table  BillF updated the entry size
+	dxr.sbtEntrySize += 8;					// CBV/SRV/UAV descriptor table BillF off since we added many more descriptors
+	//dxr.sbtEntrySize += 11;					// CBV/SRV/UAV descriptor table  BillF updated the entry size
 	dxr.sbtEntrySize = ALIGN(D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT, dxr.sbtEntrySize);
 
 	sbtSize = (dxr.sbtEntrySize * numberOfRecords);		// 4 shader records in the table

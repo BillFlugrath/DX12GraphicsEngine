@@ -209,7 +209,7 @@ AccelerationStructureBuffer BLAS_TLAS_Utilities::createTopLevelAS(ID3D12Device5*
 
         //BillF added transform
         instanceDescs[i].Transform[0][0] = instanceDescs[i].Transform[1][1] = instanceDescs[i].Transform[2][2] = 1; 
-        instanceDescs[i].Transform[0][3] = 3.0f*i;//offset on x axis
+        instanceDescs[i].Transform[0][3] = 1.5f*i;//offset on x axis
 
        // mat4 m = transpose(transformation[i]); // GLM is column major, the INSTANCE_DESC is row major
       //  memcpy(instanceDescs[i].Transform, &m, sizeof(instanceDescs[i].Transform));

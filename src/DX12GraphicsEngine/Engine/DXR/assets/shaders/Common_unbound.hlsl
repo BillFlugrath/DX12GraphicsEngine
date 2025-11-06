@@ -32,20 +32,23 @@ cbuffer SceneShaderData : register(b2)
 	uint numberOfModelsTotal; //total number of models in scene
 	uint numberOfMeshObjectsTotal;
 	uint numberOfDiffuseTexturesTotal;
-	uint32_t pad0; //MUST PAD!!
+	uint pad0; //MUST PAD!!
 
 	//each index into the array is a model index ie InstanceID. The value at each index is the number of
 	//meshes in the model ie the number of vertex buffers in the model.  For ex, if numberOfMeshes[0]=3,
 	//then model 0 has 3 unique mesh objects (ie 3 unique vertex buffers).
-	uint numberOfMeshes[512];
+	float4 numberOfMeshes[128];
 
 };
 
 
 cbuffer SceneTextureShaderData : register(b3)
 {
-	//get the index into srv descriptor array for diffuse textures for a given mesh
-	uint diffuseTextureIndexForMesh[512];
+	//store the index into srv descriptor array for diffuse textures for all mesh objs.  For example, for mesh 5,
+	//uint texIndex=diffuseTextureIndexForMesh[5].  Thus, we lookup the index of the texture used by mesh 5.
+	//We then use that index into the actual texture array "diffuse_textures"  For ex, if texIndex=1, then the
+	//texture2D resource is accessed via diffuse_textures[texIndex] ie diffuse_textures[texIndex].
+	float4 diffuseTextureIndexForMesh[128];
 }
 
 // ---[ Resources ]---
