@@ -65,6 +65,4 @@ public:
 	// Root assets path.
 	std::wstring m_assetsPath;
 
-	bool m_bUseBoundResources = false;  //if false, use unbound resources and index resources in the hlsl shader
-
 };

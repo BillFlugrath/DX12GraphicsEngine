@@ -114,21 +114,19 @@ void DXRUtilities::Create_RayGen_Program(D3D12Global& d3d, DXRGlobal& dxr, D3D12
 * Load and create the DXR Miss program and root signature.
 */
 void DXRUtilities::Create_Miss_Program(D3D12Global& d3d, DXRGlobal& dxr, D3D12ShaderCompilerInfo& shaderCompiler,
-										const std::wstring& filename)
+	const std::wstring& filename)
 {
 	// Load and compile the miss shader
 	dxr.miss = RtProgram(D3D12ShaderInfo(filename.c_str(), L"", L"lib_6_6"));
 	m_pDXShaderUtilities->Compile_Shader(shaderCompiler, dxr.miss);
 
-	// Create an empty root signature
-	//dxr.miss.pRootSignature = m_pDXD3DUtilities->Create_Root_Signature(d3d, {});
 
 	/////////////////////////////////////////////////////////////////////////////////////////
-		// Describe the ray generation root signature
+		// Describe the ray miss root signature
 	D3D12_DESCRIPTOR_RANGE ranges[1];
 
 	ranges[0].BaseShaderRegister = 7;  //the cube map is register t7 in the common.hlsl file.
-	ranges[0].NumDescriptors = 1; 
+	ranges[0].NumDescriptors = 1;
 	ranges[0].RegisterSpace = 0; //cube map uses register space "0"
 	ranges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 	ranges[0].OffsetInDescriptorsFromTableStart = 0;
@@ -168,115 +166,24 @@ void DXRUtilities::Create_Miss_Program(D3D12Global& d3d, DXRGlobal& dxr, D3D12Sh
 
 	// Create the root signature
 	dxr.miss.pRootSignature = m_pDXD3DUtilities->Create_Root_Signature(d3d, rootDesc);
+
+	/////////////////////////////////////////////////////////////////////////////////////
+	// Create an empty root signature BillF TODO move this elsehere
+	D3D12_ROOT_SIGNATURE_DESC rootDesc2 = {};
+	rootDesc2.NumParameters = 0;
+	rootDesc2.pParameters = 0;
+	rootDesc2.Flags = D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE;
+
+	//rootDesc2.NumStaticSamplers = 1;
+	rootDesc2.pStaticSamplers = &sampler;
+	dxr.empty.pRootSignature = m_pDXD3DUtilities->Create_Root_Signature(d3d,{});
 }
 
 /**
 * Load and create the DXR Closest Hit program and root signature.
 */
+
 void DXRUtilities::Create_Closest_Hit_Program(D3D12Global& d3d, DXRGlobal& dxr, D3D12ShaderCompilerInfo& shaderCompiler,
-											const std::wstring& filename)
-{
-	// Note: since all of our triangles are opaque, we will ignore the any hit program.
-
-	//Creates a hit group subobject of type D3D12_STATE_SUBOBJECT_TYPE_HIT_GROUP.  And named group "Hit".
-	// //The HitProgram type has two members of type RtProgram ie 	RtProgram ahs; RtProgram chs;
-	//HitProgram constructor does not load any shader.  It does contain two RtProgram objects ahs and chs where each
-	//can hold a subobject of type D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY.  In this example, we only load a
-	//file for closest hit, chs, and do not load an any hit, ahs file.
-
-	dxr.hit = HitProgram(L"Hit");  
-
-	//RtProgram creates subobject of type D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY.  
-	// This corresponds to a compiled binary blob of the entire shader file.
-
-	// Load and compile the Closest Hit shader and store the blob in subobject of type 
-	// D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY .  We only load the closest hit file.  The any-hit remains unused.
-
-	dxr.hit.chs = RtProgram(D3D12ShaderInfo(filename.c_str(), L"", L"lib_6_6"));
-	m_pDXShaderUtilities->Compile_Shader(shaderCompiler, dxr.hit.chs);
-
-
-
-	// Describe the root signature
-	D3D12_DESCRIPTOR_RANGE ranges[5];
-
-	ranges[0].BaseShaderRegister = 0;
-	ranges[0].NumDescriptors = 2;
-	ranges[0].RegisterSpace = 0;
-	ranges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-	ranges[0].OffsetInDescriptorsFromTableStart = 0;
-
-	ranges[1].BaseShaderRegister = 0;
-	ranges[1].NumDescriptors = 1;
-	ranges[1].RegisterSpace = 0;
-	ranges[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
-	ranges[1].OffsetInDescriptorsFromTableStart = 2;
-
-	ranges[2].BaseShaderRegister = 0;
-	ranges[2].NumDescriptors = 8; //BillF add 3 descriptors for vertices_2,indices_2,albedo2,cubemap  update raygen root signature to 6 as well
-	ranges[2].RegisterSpace = 0;
-	ranges[2].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-	ranges[2].OffsetInDescriptorsFromTableStart = 3;
-
-	//1 cbv reg at b2
-	ranges[3].BaseShaderRegister = 2;
-	ranges[3].NumDescriptors = 1;
-	ranges[3].RegisterSpace = 0;
-	ranges[3].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-	ranges[3].OffsetInDescriptorsFromTableStart =11;
-
-	//unbound index and vertex buffers
-	ranges[4].BaseShaderRegister = 0;
-	ranges[4].NumDescriptors = UINT_MAX;
-	ranges[4].RegisterSpace = 1;
-	ranges[4].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-	ranges[4].OffsetInDescriptorsFromTableStart = 12;
-
-
-	D3D12_ROOT_PARAMETER param0 = {};
-	param0.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	param0.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-	param0.DescriptorTable.NumDescriptorRanges = _countof(ranges);
-	param0.DescriptorTable.pDescriptorRanges = ranges;
-
-	D3D12_ROOT_PARAMETER rootParams[1] = { param0 };
-
-	// Create a sampler.
-	static D3D12_STATIC_SAMPLER_DESC sampler = {};
-	sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-	sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-	sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-	sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-	sampler.MipLODBias = 0;
-	sampler.MaxAnisotropy = 0;
-	sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
-	sampler.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
-	sampler.MinLOD = 0.0f;
-	sampler.MaxLOD = D3D12_FLOAT32_MAX;
-	sampler.ShaderRegister = 0;
-	sampler.RegisterSpace = 0;
-	sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-	
-
-	D3D12_ROOT_SIGNATURE_DESC rootDesc = {};
-	rootDesc.NumParameters = _countof(rootParams);
-	rootDesc.pParameters = rootParams;
-	rootDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE;
-
-	rootDesc.NumStaticSamplers = 1;
-	rootDesc.pStaticSamplers = &sampler;
-
-	// Create the root signature.  
-	
-	// If the final D3D12_ROOT_SIGNATURE_DESC is identical to the D3D12_ROOT_SIGNATURE_DESC used to create
-	//the RayGen root signature, then dxr.hit.chs.pRootSignature = dxr.rgs.pRootSignature ie they use the
-	// exact same signature object!
-	dxr.hit.chs.pRootSignature = m_pDXD3DUtilities->Create_Root_Signature(d3d, rootDesc);
-	
-	//dxr.hit.chs.pRootSignature = m_pDXD3DUtilities->Create_Root_Signature_With_Sampler(d3d,rootDesc, 1, rootParams);
-}
-
-void DXRUtilities::Create_Closest_Hit_Program_Unbound_Resources(D3D12Global& d3d, DXRGlobal& dxr, D3D12ShaderCompilerInfo& shaderCompiler,
 	const std::wstring& filename, uint32_t numMeshObjects)
 {
 	// Note: since all of our triangles are opaque, we will ignore the any hit program.
@@ -509,6 +416,7 @@ void DXRUtilities::Destroy(DXRGlobal& dxr)
 	SAFE_RELEASE(dxr.rgs.pRootSignature);
 	SAFE_RELEASE(dxr.miss.blob);
 	SAFE_RELEASE(dxr.miss.pRootSignature);
+	SAFE_RELEASE(dxr.empty.pRootSignature);
 	SAFE_RELEASE(dxr.hit.chs.blob);
 	SAFE_RELEASE(dxr.hit.chs.pRootSignature);
 	SAFE_RELEASE(dxr.rtpso);

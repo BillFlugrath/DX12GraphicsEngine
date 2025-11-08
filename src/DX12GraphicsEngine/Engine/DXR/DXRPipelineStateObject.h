@@ -24,9 +24,7 @@ public:
 
 	void SetMaximumRecursionDepth(uint32_t maxDepth) { m_RecursionDepth = maxDepth; }
 
-	void Create_Pipeline_State_Object(D3D12Global& d3d, DXRGlobal& dxr);
-
-	void Create_Shader_Table(D3D12Global& d3d, DXRGlobal& dxr, D3D12Resources& resources);
+	void Create_Pipeline_State_Object_Unbound(D3D12Global& d3d, DXRGlobal& dxr);
 
 	void Create_Shader_Table_Unbound_Resources(D3D12Global& d3d, DXRGlobal& dxr, D3D12Resources& resources);
 

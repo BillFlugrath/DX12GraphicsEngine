@@ -27,11 +27,11 @@ void RayGen()
 
 	TraceRay(
 		SceneBVH,
-		RAY_FLAG_NONE,
+		RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
 		0xFF,
+		1,  //ray index used for hit group
 		0,
-		0,
-		0,
+		0, //index for miss shader
 		ray,
 		payload);
 

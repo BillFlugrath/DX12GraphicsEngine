@@ -46,7 +46,7 @@ void DXResourceBindingUtilities::CalculateShaderData(D3DSceneModels& d3dSceneMod
 
 	for (auto &model : models)
 	{
-		uint32_t num_meshes = model.GetMeshObjects().size();
+		uint32_t num_meshes =(uint32_t)model.GetMeshObjects().size();
 		num_mesh_objects_total += num_meshes;
 
 		m_SceneShaderData.numberOfMeshes[modelIndex].x = num_meshes;
@@ -62,10 +62,10 @@ void DXResourceBindingUtilities::CalculateShaderData(D3DSceneModels& d3dSceneMod
 		}
 	}
 
-	m_SceneShaderData.numberOfModelsTotal = models.size();
-	m_SceneShaderData.numberOfMeshObjectsTotal = num_mesh_objects_total;
+	m_SceneShaderData.numberOfModelsTotal = (uint32_t)models.size();
+	m_SceneShaderData.numberOfMeshObjectsTotal = (uint32_t)num_mesh_objects_total;
 
-	m_SceneShaderData.numberOfDiffuseTexturesTotal = textures2D.GetTextureObjects().size(); //scalar float array size
+	m_SceneShaderData.numberOfDiffuseTexturesTotal = (uint32_t)textures2D.GetTextureObjects().size(); //scalar float array size
 
 	//map start of constant buffer to the pointer m_pSceneShaderDataStart
 	HRESULT hr = m_pSceneShaderDataCB->Map(0, nullptr, reinterpret_cast<void**>(&m_pSceneShaderDataStart));
@@ -75,14 +75,12 @@ void DXResourceBindingUtilities::CalculateShaderData(D3DSceneModels& d3dSceneMod
 	hr = m_pSceneTextureShaderDataCB->Map(0, nullptr, reinterpret_cast<void**>(&m_pSceneTextureShaderDataStart));
 	Utils::Validate(hr, L"Error: failed to map Material constant buffer!");
 
-	
 	//copy data into the constant buffer
 	memcpy(m_pSceneShaderDataStart, &m_SceneShaderData, sizeof(m_SceneShaderData));
 
 	m_pSceneShaderDataCB->Unmap(0, nullptr);
 
 
-	
 	//copy data into the constant buffer
 	memcpy(m_pSceneTextureShaderDataStart, &m_SceneTextureShaderData, sizeof(m_SceneTextureShaderData));
 
@@ -104,7 +102,7 @@ HRESULT DXResourceBindingUtilities::CreateConstantBufferResources(D3D12Global& d
 	return hr;
 }
 
-void  DXResourceBindingUtilities::CreateVertexAndIndexBufferSRVsUnbound(D3D12Global& d3d, DXRGlobal& dxr, 
+void  DXResourceBindingUtilities::CreateVertexAndIndexBufferSRVs(D3D12Global& d3d, DXRGlobal& dxr, 
 						D3D12Resources& resources, D3DSceneModels& d3dSceneModels, D3DSceneTextures& textures2D)
 {
 	//start handle 
@@ -203,7 +201,7 @@ void  DXResourceBindingUtilities::CreateVertexAndIndexBufferSRVsUnbound(D3D12Glo
 		d3d.device->CreateShaderResourceView(tex.m_pTextureResource.Get(), &textureSRVDesc, handle);
 	}
 
-	m_SceneShaderData.numberOfMeshObjectsTotal = num_mesh_objects_total;
-	m_SceneShaderData.numberOfModelsTotal = num_models;
-	m_SceneShaderData.numberOfDiffuseTexturesTotal = textures.size();
+	m_SceneShaderData.numberOfMeshObjectsTotal = (uint32_t)num_mesh_objects_total;
+	m_SceneShaderData.numberOfModelsTotal = (uint32_t)num_models;
+	m_SceneShaderData.numberOfDiffuseTexturesTotal = (uint32_t)textures.size();
 }

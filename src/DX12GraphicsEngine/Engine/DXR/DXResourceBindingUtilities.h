@@ -24,7 +24,7 @@ public:
 
 	void CalculateShaderData(D3DSceneModels& d3dSceneModels, D3DSceneTextures& textures2D);
 
-	void CreateVertexAndIndexBufferSRVsUnbound(D3D12Global& d3d, DXRGlobal& dxr, D3D12Resources& resources,
+	void CreateVertexAndIndexBufferSRVs(D3D12Global& d3d, DXRGlobal& dxr, D3D12Resources& resources,
 												D3DSceneModels& d3dSceneModels, D3DSceneTextures& textures2D);
 
 

@@ -58,9 +58,6 @@ void DX12Raytracing_2::OnInit()
 {
 	m_pDXRManager->InitD3D12(m_Width, m_Height, Win32Application::GetHwnd(), false);
 
-	//Set Use unbound resources
-	m_pDXRManager->SetBoundResources(m_bUseBoundResources);
-
 	D3D12Global d3d = m_pDXRManager->GetD3DGlobal();
 	m_dxrDevice = d3d.device;
 	m_dxrCommandList = d3d.cmdList;
@@ -88,7 +85,7 @@ void DX12Raytracing_2::OnInit()
 
 	//Set hit group for TLAS objects ie set hit group for each model
 	vModelObjects[0].SetHitGroupIndex(0);
-	vModelObjects[1].SetHitGroupIndex(1);
+	vModelObjects[1].SetHitGroupIndex(0);
 	vModelObjects[2].SetHitGroupIndex(0);
 
 	//Create D3DTexture objects
@@ -146,26 +143,16 @@ void DX12Raytracing_2::OnInit()
 	m_pDXRManager->CreateTopAndBottomLevelAS(*m_pD3DSceneModels); 
 
 	//Create signatures and load shaders
-	if (m_bUseBoundResources == true)
-	{
-		m_pDXRManager->CreateShadersAndRootSignatures();
-	}
-	else
-	{
-		m_pDXRManager->CreateShadersAndRootSignaturesUnbound(*m_pD3DSceneModels);
-	}
+	m_pDXRManager->CreateShadersAndRootSignatures(*m_pD3DSceneModels);
 	
-
+	
 	//create constant buffer D3D12 resources. The CBV (view descriptors) are made after in CreateCBVSRVUAVDescriptorHeap
 	m_pDXRManager->CreateConstantBufferResources((float)width); //Used for texture.LOAD.  TODO just use sampler.
 	
 	m_pDXRManager->CreateCBVSRVUAVDescriptorHeap(*m_pD3DSceneModels, vBoundTextures);  //Sets BOUND textures and bound models
-
-	if (m_bUseBoundResources==false)
-	{
-		m_pDXRManager->InitializeUnboundResources(*m_pD3DSceneModels, *m_pD3DSceneTextures2D);
-		m_pDXRManager->CreateUnboundVertexAndIndexBufferSRVs(*m_pD3DSceneModels, *m_pD3DSceneTextures2D);
-	}
+	
+	m_pDXRManager->InitializeUnboundResources(*m_pD3DSceneModels, *m_pD3DSceneTextures2D);
+	m_pDXRManager->CreateVertexAndIndexBufferSRVs(*m_pD3DSceneModels, *m_pD3DSceneTextures2D);
 
 	m_pDXRManager->Create_PSO_and_ShaderTable();
 
@@ -223,11 +210,7 @@ void DX12Raytracing_2::OnUpdate()
 {
 	m_pDXCamera->Update();
 	m_pDXRManager->Update(m_pDXCamera->GetViewMatrix(), m_pDXCamera->GetPosition(), m_pDXCamera->GetFOV());
-
-	if (m_bUseBoundResources == false)
-	{
-		m_pDXRManager->UpdateUnboundCB(*m_pD3DSceneModels, *m_pD3DSceneTextures2D);
-	}
+	m_pDXRManager->UpdateUnboundCB(*m_pD3DSceneModels, *m_pD3DSceneTextures2D);
 }
 
 void DX12Raytracing_2::OnRender()

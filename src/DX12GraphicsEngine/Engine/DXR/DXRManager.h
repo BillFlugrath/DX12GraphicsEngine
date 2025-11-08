@@ -25,15 +25,15 @@ public:
 
 	HRESULT CreateConstantBufferResources(float textureResolution);
 
-	HRESULT CreateUnboundVertexAndIndexBufferSRVs(D3DSceneModels& d3dSceneModels, D3DSceneTextures& textures2D);
+	HRESULT CreateVertexAndIndexBufferSRVs(D3DSceneModels& d3dSceneModels, D3DSceneTextures& textures2D);
+	
 	HRESULT CreateCBVSRVUAVDescriptorHeap(D3DSceneModels& d3dSceneModels, std::vector<D3DTexture> textures);
 
 	HRESULT Create_PSO_and_ShaderTable();
 
 	HRESULT CreateTopAndBottomLevelAS(D3DSceneModels& d3dSceneModels);
 
-	HRESULT CreateShadersAndRootSignatures(); 
-	HRESULT CreateShadersAndRootSignaturesUnbound(D3DSceneModels& d3dSceneModels);
+	HRESULT CreateShadersAndRootSignatures(D3DSceneModels& d3dSceneModels);
 
 	void ExecuteCommandList();
 	void ResetCommandList();
@@ -45,9 +45,6 @@ public:
 	void Cleanup();
 
 	D3D12Global& GetD3DGlobal() { return d3d; }
-
-	void SetBoundResources(bool bindless) { m_bUseBoundResources = bindless; }
-	bool GetBoundResources() { return m_bUseBoundResources; }
 
 	void InitializeUnboundResources(D3DSceneModels& d3dSceneModels, D3DSceneTextures& textures2D);
 
@@ -78,7 +75,6 @@ protected:
 	D3D12ShaderCompilerInfo shaderCompiler;
 
 	bool m_bCreateWindow = false;
-	bool m_bUseBoundResources = true;
 
 	//--------------------- Debug members --------------------------------------
 	void CreateDebugConsole();

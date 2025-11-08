@@ -11,23 +11,17 @@
 
 #include "stdafx.h"
 
-#include "DX12Raytracing_1.h" 
 #include "DX12Raytracing_2.h" 
 #include "D3D12PointCloudApp_4.h"
 
 _Use_decl_annotations_
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
-    uint32_t appIndex = 2;
+    uint32_t appIndex = 1;
 
     if (appIndex == 0)
     {
         D3D12PointCloudApp_4 sample(1024, 1024, L"D3D12 Point Cloud Test 4");
-        return Win32Application::Run(&sample, hInstance, nCmdShow);
-    }
-    else if (appIndex == 1)
-    {
-        DX12Raytracing_1 sample(512, 512, L"D3D12 Raytracing 1");
         return Win32Application::Run(&sample, hInstance, nCmdShow);
     }
     else 

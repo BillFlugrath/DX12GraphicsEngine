@@ -32,7 +32,7 @@ void DXD3DUtilities::Create_Device(D3D12Global& d3d)
 			ID3D12Debug* debugController;
 			if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
 			{
-				debugController->EnableDebugLayer();
+			//	debugController->EnableDebugLayer(); //turned of since it breaks Nsight shader debugging
 			}
 		}
 #endif

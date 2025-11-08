@@ -25,8 +25,7 @@ public:
 	void Create_RayGen_Program(D3D12Global& d3d, DXRGlobal& dxr, D3D12ShaderCompilerInfo& shaderCompiler, const std::wstring& filename);
 	void Create_Miss_Program(D3D12Global& d3d, DXRGlobal& dxr, D3D12ShaderCompilerInfo& shaderCompiler, const std::wstring& filename);
 	
-	void Create_Closest_Hit_Program(D3D12Global& d3d, DXRGlobal& dxr, D3D12ShaderCompilerInfo& shaderCompiler, const std::wstring& filename);
-	void Create_Closest_Hit_Program_Unbound_Resources(D3D12Global& d3d, DXRGlobal& dxr,
+	void Create_Closest_Hit_Program(D3D12Global& d3d, DXRGlobal& dxr,
 		D3D12ShaderCompilerInfo& shaderCompiler, const std::wstring& filename, uint32_t numMeshObjects);
 
 	void Create_DXR_Output_Buffer(D3D12Global& d3d, D3D12Resources& resources);

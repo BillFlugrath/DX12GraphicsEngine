@@ -409,6 +409,7 @@ struct DXRGlobal
 	RtProgram										rgs;
 	RtProgram										miss;
 	HitProgram										hit;
+	RtProgram										empty; //global empty root signature
 
 	ID3D12StateObject*								rtpso;
 	ID3D12StateObjectProperties*					rtpsoInfo;

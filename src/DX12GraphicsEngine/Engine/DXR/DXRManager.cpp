@@ -140,33 +140,22 @@ HRESULT DXRManager::CreateTopAndBottomLevelAS(D3DSceneModels& d3dSceneModels)
 	return hr;
 }
 
-HRESULT DXRManager::CreateShadersAndRootSignatures()
+HRESULT DXRManager::CreateShadersAndRootSignatures(D3DSceneModels& d3dSceneModels)
 {
 	//The pipeline contains the DXIL code of all the shaders potentially executed during the raytracing process. This section compiles the HLSL code into a
-  // set of DXIL libraries. We chose to separate the code in several libraries by semantic (ray generation, hit, miss) for clarity.  
-  // Each library is stored in a subobject of type D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY.  We also create a root signature after the shader file is
-	//compiled.  The entire shader file is compiled and therefore can have several shader functions in the DXIL
+// set of DXIL libraries. We chose to separate the code in several libraries by semantic (ray generation, hit, miss) for clarity.  
+// Each library is stored in a subobject of type D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY.  We also create a root signature after the shader file is
+  //compiled.  The entire shader file is compiled and therefore can have several shader functions in the DXIL
 
-	//A DXIL library can be seen similarly as a regular DLL, which contains compiled code that can be accessed using a number of exported symbols.
-	// In the case of the raytracing pipeline, such symbols correspond to the names of the functions implementing the shader programs. 
-	// For each file, we then add the library pointer in the pipeline, along with the name of the function it contains.
-	//The calls to create the DXIL libs do not use any specific shader names!!  The entire file is compiled into a blob.
+  //A DXIL library can be seen similarly as a regular DLL, which contains compiled code that can be accessed using a number of exported symbols.
+  // In the case of the raytracing pipeline, such symbols correspond to the names of the functions implementing the shader programs. 
+  // For each file, we then add the library pointer in the pipeline, along with the name of the function it contains.
+  //The calls to create the DXIL libs do not use any specific shader names!!  The entire file is compiled into a blob.
 
-	//To use a function exported from a shader, each DX12 shader needs a root signature defining which
-	// parameters and buffers will be accessed.  Thus, the function calls below create a DXIL lib for each shader file
-	//along with a root signature to be used with the DXIL.
+  //To use a function exported from a shader, each DX12 shader needs a root signature defining which
+  // parameters and buffers will be accessed.  Thus, the function calls below create a DXIL lib for each shader file
+  //along with a root signature to be used with the DXIL.
 
-	HRESULT hr = EXIT_SUCCESS;
-
-	m_pDXRUtilities->Create_RayGen_Program(d3d, dxr, shaderCompiler, kRayGenFilename);
-	m_pDXRUtilities->Create_Miss_Program(d3d, dxr, shaderCompiler, kMissFilename);
-	m_pDXRUtilities->Create_Closest_Hit_Program(d3d, dxr, shaderCompiler, kClosestHitFilename);
-
-	return hr;
-}
-
-HRESULT DXRManager::CreateShadersAndRootSignaturesUnbound(D3DSceneModels& d3dSceneModels)
-{
 	HRESULT hr = EXIT_SUCCESS;
 
 	std::vector<D3DModel>& models = d3dSceneModels.GetModelObjects();
@@ -174,14 +163,14 @@ HRESULT DXRManager::CreateShadersAndRootSignaturesUnbound(D3DSceneModels& d3dSce
 
 	for (auto& model : models)
 	{
-		uint32_t num_meshes = model.GetMeshObjects().size();
+		uint32_t num_meshes = (uint32_t)model.GetMeshObjects().size();
 		numMeshObjects += num_meshes;
 	}
  
 	m_pDXRUtilities->Create_RayGen_Program(d3d, dxr, shaderCompiler, kRayGenUnboundFilename);
 	m_pDXRUtilities->Create_Miss_Program(d3d, dxr, shaderCompiler, kMissUnboundFilename);
 	uint32_t num_mesh_objects_total = 0;
-	m_pDXRUtilities->Create_Closest_Hit_Program_Unbound_Resources(d3d, dxr, shaderCompiler, kClosestHitUnboundFilename,
+	m_pDXRUtilities->Create_Closest_Hit_Program(d3d, dxr, shaderCompiler, kClosestHitUnboundFilename,
 		numMeshObjects);
 	
 
@@ -191,18 +180,16 @@ HRESULT DXRManager::CreateShadersAndRootSignaturesUnbound(D3DSceneModels& d3dSce
 HRESULT DXRManager::CreateCBVSRVUAVDescriptorHeap(D3DSceneModels& d3dSceneModels, std::vector<D3DTexture> textures)
 {
 	HRESULT hr = EXIT_SUCCESS;
-	if (m_bUseBoundResources)
-		m_pDXRPipelineStateObject->Create_CBVSRVUAV_Heap(d3d, dxr, resources, d3dSceneModels, textures);
-	else
-		m_pDXRPipelineStateObject->Create_CBVSRVUAV_Heap_Unbound_Resources(d3d, dxr, resources, d3dSceneModels, textures);
+	
+	m_pDXRPipelineStateObject->Create_CBVSRVUAV_Heap_Unbound_Resources(d3d, dxr, resources, d3dSceneModels, textures);
 		
 	return hr;
 }
 
-HRESULT DXRManager::CreateUnboundVertexAndIndexBufferSRVs(D3DSceneModels& d3dSceneModels, D3DSceneTextures& textures2D)
+HRESULT DXRManager::CreateVertexAndIndexBufferSRVs(D3DSceneModels& d3dSceneModels, D3DSceneTextures& textures2D)
 {
 	HRESULT hr = EXIT_SUCCESS;
-	m_pDXResourceBindingUtilities->CreateVertexAndIndexBufferSRVsUnbound(d3d, dxr, resources, d3dSceneModels, textures2D);
+	m_pDXResourceBindingUtilities->CreateVertexAndIndexBufferSRVs(d3d, dxr, resources, d3dSceneModels, textures2D);
 	return hr;
 }
 
@@ -210,14 +197,9 @@ HRESULT DXRManager::Create_PSO_and_ShaderTable()
 {
 	HRESULT hr = EXIT_SUCCESS;
 
-	// Create DXR specific resources
-	m_pDXRPipelineStateObject->Create_Pipeline_State_Object(d3d, dxr);
-
-	if (m_bUseBoundResources)
-		m_pDXRPipelineStateObject->Create_Shader_Table(d3d, dxr, resources);
-	else
-		m_pDXRPipelineStateObject->Create_Shader_Table_Unbound_Resources(d3d, dxr, resources);
-		
+	m_pDXRPipelineStateObject->Create_Pipeline_State_Object_Unbound(d3d, dxr);
+	m_pDXRPipelineStateObject->Create_Shader_Table_Unbound_Resources(d3d, dxr, resources);
+	
 	return hr;
 }
 

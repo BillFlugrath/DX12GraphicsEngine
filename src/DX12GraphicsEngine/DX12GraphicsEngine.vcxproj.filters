@@ -207,9 +207,6 @@
     <ClInclude Include="D3D12PointCloudApp_4.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DX12Raytracing_1.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Engine\DXR\DXResourceBindingUtilities.h">
       <Filter>EngineAndDXR\DXR</Filter>
     </ClInclude>
@@ -308,9 +305,6 @@
     <ClCompile Include="Engine\DDSTextureLoader.cpp">
       <Filter>EngineAndDXR\Engine</Filter>
     </ClCompile>
-    <ClCompile Include="DX12Raytracing_1.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="D3D12PointCloudApp_4.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -328,16 +322,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Engine\DXR\assets\shaders\ClosestHit.hlsl">
-      <Filter>EngineAndDXR\DXR\assets\shaders</Filter>
-    </FxCompile>
     <FxCompile Include="Engine\DXR\assets\shaders\Common.hlsl">
-      <Filter>EngineAndDXR\DXR\assets\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Engine\DXR\assets\shaders\Miss.hlsl">
-      <Filter>EngineAndDXR\DXR\assets\shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Engine\DXR\assets\shaders\RayGen.hlsl">
       <Filter>EngineAndDXR\DXR\assets\shaders</Filter>
     </FxCompile>
     <FxCompile Include="Engine\DXR\assets\shaders\ClosestHit_unbound.hlsl">
