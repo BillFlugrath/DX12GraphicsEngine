@@ -84,9 +84,9 @@ void DX12Raytracing_2::OnInit()
 	vModelObjects[2].SetPosition(-50, -1.0, -50);
 
 	//Set hit group for TLAS objects ie set hit group for each model
-	vModelObjects[0].SetHitGroupIndex(0);
-	vModelObjects[1].SetHitGroupIndex(0);
-	vModelObjects[2].SetHitGroupIndex(0);
+	vModelObjects[0].SetHitGroupIndex(0); //cube and axes
+	vModelObjects[1].SetHitGroupIndex(2);  //sphere
+	vModelObjects[2].SetHitGroupIndex(0);  //plane
 
 	//Create D3DTexture objects
 	D3DTexture tex0,tex1,tex2,tex3, tex4;
