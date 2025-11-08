@@ -24,15 +24,10 @@ public:
 
 	void SetMaximumRecursionDepth(uint32_t maxDepth) { m_RecursionDepth = maxDepth; }
 
-	void Create_Pipeline_State_Object_Unbound(D3D12Global& d3d, DXRGlobal& dxr);
+	void Create_Pipeline_State_Object(D3D12Global& d3d, DXRGlobal& dxr);
 
-	void Create_Shader_Table_Unbound_Resources(D3D12Global& d3d, DXRGlobal& dxr, D3D12Resources& resources);
+	void Create_Shader_Table(D3D12Global& d3d, DXRGlobal& dxr, D3D12Resources& resources);
 
-	void Create_CBVSRVUAV_Heap(D3D12Global& d3d, DXRGlobal& dxr, D3D12Resources& resources,
-		D3DSceneModels& d3dSceneModels, std::vector<D3DTexture> textures);
-	
-	void Create_CBVSRVUAV_Heap_Unbound_Resources(D3D12Global& d3d, DXRGlobal& dxr,
-		D3D12Resources& resources, D3DSceneModels& d3dSceneModels, std::vector<D3DTexture> textures);
 
 	void Destroy(DXRGlobal& dxr);
 
@@ -42,5 +37,4 @@ public:
 
 	const uint32_t kMaxRecursionDepth = 2;
 	uint32_t m_RecursionDepth;
-	uint32_t m_NumDescriptors_CBVSRVUAV_Heap = 1024;
 };

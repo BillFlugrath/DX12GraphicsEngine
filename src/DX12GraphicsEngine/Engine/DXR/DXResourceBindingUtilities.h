@@ -27,6 +27,9 @@ public:
 	void CreateVertexAndIndexBufferSRVs(D3D12Global& d3d, DXRGlobal& dxr, D3D12Resources& resources,
 												D3DSceneModels& d3dSceneModels, D3DSceneTextures& textures2D);
 
+	void Create_CBVSRVUAV_Heap(D3D12Global& d3d, DXRGlobal& dxr,
+		D3D12Resources& resources, D3DSceneModels& d3dSceneModels, std::vector<D3DTexture> textures);
+
 
 	static const uint32_t kShaderDataArraySize = 128;
 	 
@@ -70,6 +73,7 @@ protected:
 	UINT8* m_pSceneTextureShaderDataStart; //final bytes mapped to resource for SceneTextureShaderData
 	
 
+	uint32_t m_NumDescriptors_CBVSRVUAV_Heap = 1024;
 	//--------------------- Debug members --------------------------------------
 
 };

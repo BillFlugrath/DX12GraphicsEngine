@@ -181,7 +181,7 @@ HRESULT DXRManager::CreateCBVSRVUAVDescriptorHeap(D3DSceneModels& d3dSceneModels
 {
 	HRESULT hr = EXIT_SUCCESS;
 	
-	m_pDXRPipelineStateObject->Create_CBVSRVUAV_Heap_Unbound_Resources(d3d, dxr, resources, d3dSceneModels, textures);
+	m_pDXResourceBindingUtilities->Create_CBVSRVUAV_Heap(d3d, dxr, resources, d3dSceneModels, textures);
 		
 	return hr;
 }
@@ -197,8 +197,8 @@ HRESULT DXRManager::Create_PSO_and_ShaderTable()
 {
 	HRESULT hr = EXIT_SUCCESS;
 
-	m_pDXRPipelineStateObject->Create_Pipeline_State_Object_Unbound(d3d, dxr);
-	m_pDXRPipelineStateObject->Create_Shader_Table_Unbound_Resources(d3d, dxr, resources);
+	m_pDXRPipelineStateObject->Create_Pipeline_State_Object(d3d, dxr);
+	m_pDXRPipelineStateObject->Create_Shader_Table(d3d, dxr, resources);
 	
 	return hr;
 }

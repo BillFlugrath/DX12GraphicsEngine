@@ -205,3 +205,106 @@ void  DXResourceBindingUtilities::CreateVertexAndIndexBufferSRVs(D3D12Global& d3
 	m_SceneShaderData.numberOfModelsTotal = (uint32_t)num_models;
 	m_SceneShaderData.numberOfDiffuseTexturesTotal = (uint32_t)textures.size();
 }
+
+
+/**
+* Create the DXR descriptor heap for CBVs, SRVs, and the output UAV.
+*/
+
+void DXResourceBindingUtilities::Create_CBVSRVUAV_Heap(D3D12Global& d3d, DXRGlobal& dxr,
+	D3D12Resources& resources, D3DSceneModels& d3dSceneModels, std::vector<D3DTexture> textures)
+{
+	// Describe the CBV/SRV/UAV heap
+	// Need 11 entries:
+	// 1 CBV for the ViewCB
+	// 1 CBV for the MaterialCB
+	// 1 UAV for the RT output
+	// 1 SRV for the Scene BVH
+	// 1 SRV for the texture
+	// 1 SRV for the texture 1
+	// 1 SRV for the cube texture
+
+	UINT numDescriptors = m_NumDescriptors_CBVSRVUAV_Heap;
+
+	D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+	desc.NumDescriptors = numDescriptors;
+	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+
+	// Create the descriptor heap
+	HRESULT hr = d3d.device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&resources.cbvSrvUavHeap));
+	Utils::Validate(hr, L"Error: failed to create DXR CBV/SRV/UAV descriptor heap!");
+
+	// Get the descriptor heap handle and increment size
+	D3D12_CPU_DESCRIPTOR_HANDLE handle = resources.cbvSrvUavHeap->GetCPUDescriptorHandleForHeapStart();
+	UINT handleIncrement = d3d.device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+	// Create the ViewCB CBV (ie create a descriptor that points to data at "BufferLocation"
+	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+	cbvDesc.SizeInBytes = ALIGN(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT, sizeof(resources.viewCBData));
+	cbvDesc.BufferLocation = resources.viewCB->GetGPUVirtualAddress();
+
+	//create the descriptor in the heap location "handle".  dont confuse handle (ie location of descriptor) with actual data of the buffer
+	//stored at "cbvDesc.BufferLocation"
+	d3d.device->CreateConstantBufferView(&cbvDesc, handle);
+
+	// Create the MaterialCB CBV
+	cbvDesc.SizeInBytes = ALIGN(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT, sizeof(resources.materialCBData));
+	cbvDesc.BufferLocation = resources.materialCB->GetGPUVirtualAddress();
+
+	handle.ptr += handleIncrement;
+	d3d.device->CreateConstantBufferView(&cbvDesc, handle);
+
+	// Create the DXR output buffer UAV
+	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+	uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+
+	handle.ptr += handleIncrement;
+	d3d.device->CreateUnorderedAccessView(resources.DXROutput, nullptr, &uavDesc, handle);
+
+	// Create the DXR Top Level Acceleration Structure SRV
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.RaytracingAccelerationStructure.Location = dxr.TLAS.pResult->GetGPUVirtualAddress();
+
+	handle.ptr += handleIncrement;
+	d3d.device->CreateShaderResourceView(nullptr, &srvDesc, handle);
+
+	// Create the material texture SRV : register(t3);
+	D3D12_SHADER_RESOURCE_VIEW_DESC textureSRVDesc = {};
+	textureSRVDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	textureSRVDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	textureSRVDesc.Texture2D.MipLevels = 1;
+	textureSRVDesc.Texture2D.MostDetailedMip = 0;
+	textureSRVDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+
+	handle.ptr += handleIncrement;
+	d3d.device->CreateShaderResourceView(textures[0].m_pTextureResource.Get(), &textureSRVDesc, handle);
+
+
+	// Create the material texture_1 SRV : register(t6);
+	D3D12_SHADER_RESOURCE_VIEW_DESC textureSRVDesc2 = {};
+	textureSRVDesc2.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	textureSRVDesc2.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	textureSRVDesc2.Texture2D.MipLevels = 1;
+	textureSRVDesc2.Texture2D.MostDetailedMip = 0;
+	textureSRVDesc2.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+
+	handle.ptr += handleIncrement;
+	d3d.device->CreateShaderResourceView(textures[1].m_pTextureResource.Get(), &textureSRVDesc2, handle);
+
+	// Create the cube map 0 texture SRV : register(t7);
+	D3D12_SHADER_RESOURCE_VIEW_DESC textureSRVDesc3 = {};
+	textureSRVDesc3.Format = textures[2].m_pTextureResource.Get()->GetDesc().Format;
+	textureSRVDesc3.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+	textureSRVDesc3.Texture2D.MipLevels = textures[2].m_pTextureResource.Get()->GetDesc().MipLevels;
+	textureSRVDesc3.Texture2D.MostDetailedMip = 0;
+	textureSRVDesc3.Texture2D.ResourceMinLODClamp = 0.0f;
+	textureSRVDesc3.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+
+
+	handle.ptr += handleIncrement;
+	d3d.device->CreateShaderResourceView(textures[2].m_pTextureResource.Get(), &textureSRVDesc3, handle);
+}
