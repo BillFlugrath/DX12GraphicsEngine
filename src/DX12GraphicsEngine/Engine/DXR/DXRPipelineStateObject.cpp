@@ -433,28 +433,28 @@ void DXRPipelineStateObject::Create_Shader_Table(D3D12Global& d3d, DXRGlobal& dx
 	HRESULT hr = dxr.sbt->Map(0, nullptr, (void**)&pData);
 	Utils::Validate(hr, L"Error: failed to map shader table!");
 
-	// Entry 0 - Ray Generation program and local root argument data (descriptor table with constant buffer and IB/VB pointers)
+	// Ray Generation program and local root argument data (descriptor table with constant buffer and IB/VB pointers)
 	memcpy(pData, dxr.rtpsoInfo->GetShaderIdentifier(L"RayGen_12"), shaderIdSize);
 
 	// Set the root arguments data. Point to start of descriptor heap
 	*reinterpret_cast<D3D12_GPU_DESCRIPTOR_HANDLE*>(pData + shaderIdSize) = resources.cbvSrvUavHeap->GetGPUDescriptorHandleForHeapStart();
 
-	// Miss program 0
+	// Miss program 0.  This is Miss Program for Primary Ray.
 	pData += dxr.sbtEntrySize;
 	memcpy(pData, dxr.rtpsoInfo->GetShaderIdentifier(L"Miss_5"), shaderIdSize);
 
-	// Set the local signature's arg data (ie miss shader's arg). The data is the 10th descriptor in descriptor heap. 
+	// Set the local signature's arg data (ie miss shader's arg). The data is the 6th descriptor in descriptor heap. 
 	// This is since the cube map texture is the 6th descriptor in the descriptor heap.  The descriptor holds
 	// the srv for the cube texture.
 
-	//Miss Program 0 data
+	//Miss Program 0 data.  
 	D3D12_GPU_DESCRIPTOR_HANDLE handle = resources.cbvSrvUavHeap->GetGPUDescriptorHandleForHeapStart();
 	UINT handleIncrement = d3d.device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 	handle.ptr += handleIncrement * 6; //get handle to the 6th descriptor ie the cubemap
 	*reinterpret_cast<D3D12_GPU_DESCRIPTOR_HANDLE*>(pData + shaderIdSize) = handle; //set handle to the descriptor
 
-	//  2nd Miss program ie MissShadow (no data, uses empty signature)
+	//  2nd Miss program ie MissShadow (no data, uses empty signature).  This is Miss Program for Shadow Ray.
 	pData += dxr.sbtEntrySize;
 	memcpy(pData, dxr.rtpsoInfo->GetShaderIdentifier(L"MissShadow_5"), shaderIdSize);
 
@@ -494,6 +494,7 @@ void DXRPipelineStateObject::Create_Shader_Table(D3D12Global& d3d, DXRGlobal& dx
 	// Unmap
 	dxr.sbt->Unmap(0, nullptr);
 }
+
 /**
  * Release DXR resources.
  */

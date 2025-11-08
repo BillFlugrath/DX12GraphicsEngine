@@ -34,17 +34,27 @@ ShadowPayload CastShadowRay(float3 norm)
 	// Fire a shadow ray. The direction is hard-coded here, but can be fetched from a constant-buffer
 	RayDesc ray;
 	ray.Origin = posW;
-//	ray.Direction = normalize(float3(0.5, 0.5, -0.5));  //ray direction  toward light source
 	ray.Direction = normalize(float3(0.0, 1.0, 1.0));  //ray direction  toward light source
 	ray.TMin = 0.01;
 	ray.TMax = 100000;
 
 	//unused flags | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH 
 	ShadowPayload shadowPayload;
+
+	//The fourth parameter is the RayContributionToHitGroupIndex.  Also called Ray index. The final hitgroup index to use
+	//is calculated using the Instance geometry in each TLAS instance called InstanceContributionToHitGroupIndex.  Thus,
+	//both the TraceRay arg and the instance setting is used to calculate hitgroup index in the SBT (shader binding table).
+	
+	/*TraceRay( scene, RAY_FLAG_NONE, instancesToQuery, // What geometry?
+		hitGroup, numHitGroups, missShader,     // Which shaders?
+		ray,                                    // What ray to trace?
+		payload );                              // What data to use?
+	*/
+
 	TraceRay(SceneBVH, 
 		 RAY_FLAG_CULL_FRONT_FACING_TRIANGLES  /*rayFlags*/,
 		0xFF, 
-		2 /* ray index used for hit group */,
+		2,	//RayContributionToHitGroupIndex.  Also called Ray index.  
 		0, 
 		1, //miss shader index
 		ray, shadowPayload);
@@ -83,21 +93,18 @@ void ClosestHit(inout HitInfo payload : SV_RayPayload,
 		if (InstanceIndex() == 2) //apply to plane only
 			color *= float3(0.4, 0.4, 0.4); // float3(1, 1, 0);
 	}
-	else
-	{
-	//	color = float3(0, 1, 0);
-	}
+	
 
-	if (InstanceIndex() == 1)
-	{
+	//if (InstanceIndex() == 1)
+	//{
 		//if here, the sample is from the sphere's triangle
 		// Sample the cubemap texture using the normalized ray direction
-		float3 reflct = reflect(WorldRayDirection(), normalize(vertex.normal));
-		float4 cubemapColor = cubeMap_0.SampleLevel(g_SamplerState, normalize(reflct), 0);
+		//float3 reflct = reflect(WorldRayDirection(), normalize(vertex.normal));
+		//float4 cubemapColor = cubeMap_0.SampleLevel(g_SamplerState, normalize(reflct), 0);
 
-		payload.ShadedColorAndHitT = float4(cubemapColor.rgb, RayTCurrent());
-		return;
-	}
+		//payload.ShadedColorAndHitT = float4(cubemapColor.rgb, RayTCurrent());
+		//return;
+	//}
 
 	payload.ShadedColorAndHitT = float4(color, RayTCurrent());  //use Texture2d sample
 

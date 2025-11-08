@@ -202,11 +202,17 @@ AccelerationStructureBuffer BLAS_TLAS_Utilities::createTopLevelAS(ID3D12Device5*
         instanceDescs[i].InstanceID = i; // This value in the shader via InstanceID().This value in shader as SV_InstanceID
         
         // InstanceContributionToHitGroupIndex  is the offset inside the shader-table to get correct hit shader and
-        // correct parameters for the shader.
+        // correct parameters for the shader.  It is not the exact hit group, but an offset from the 
+        // start of the hit-table entries specified in Raytrace().  The final index is calculated using the
+        // RayContributionToHitGroupIndex – One of the parameters of the HLSL’s TraceRay() function.
+        // It is the third parameter and also refered to as the Ray Index.
         // Since we have unique constant-buffer for each instance, we need a different offset for each model instance.
         //Thus, this index specifies what shader and registers to use when a hit is detected.  If we wish all TLAS
         //models could use a single shader table record.
-        instanceDescs[i].InstanceContributionToHitGroupIndex = d3dModels[i].GetHitGroupIndex();  
+     
+         // The indices are relative to to the start of the hit-table entries specified in Raytrace().  The start index
+        //specified in the TraceRay() is in the RayContributionToHitGroupIndex parameter (fourth parameter).
+        instanceDescs[i].InstanceContributionToHitGroupIndex = d3dModels[i].GetHitGroupIndex();
         instanceDescs[i].Flags = D3D12_RAYTRACING_INSTANCE_FLAG_NONE;
 
         instanceDescs[i].Transform[0][0] = instanceDescs[i].Transform[1][1] = instanceDescs[i].Transform[2][2] = 1; 
