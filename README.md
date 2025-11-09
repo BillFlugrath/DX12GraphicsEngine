@@ -13,3 +13,4 @@ For the sample apps, 3-d models are Wavefront "obj" files that contain the verte
 The camera is controlled via the standard WASD.  The up and down arrow keys can be used to move along camera y-axis.  Camera orientation is controlled via pressing the left or right mouse button and using the arrow keys.  The left and right arrows control camera yaw.  The up and down arrows control camera pitch.  Press "R" key to reset to starting position and orientation.
 
 The main.cpp is the entry point to the application and has the standard WinMain function.
+Microsoft Visual Studio Community 2022 is required to load the project and build the application.
