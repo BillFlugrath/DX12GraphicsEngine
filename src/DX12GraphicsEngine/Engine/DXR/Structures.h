@@ -87,8 +87,8 @@ struct D3DModel
 
 	void AddMesh(D3DMesh& m) { m_vMeshObjects.push_back(m); }
 	std::vector<D3DMesh>& GetMeshObjects() { return m_vMeshObjects;}
-	void SetHitGroupIndex(UINT hg) { m_HitGroupIndex = hg; }
-	UINT GetHitGroupIndex() { return m_HitGroupIndex; }
+	void SetInstanceContributionToHitGroupIndex(UINT hg) { m_HitGroupIndex = hg; }
+	UINT GetInstanceContributionToHitGroupIndex() { return m_HitGroupIndex; }
 
 	void SetTexture2DIndex(uint32_t i)
 	{

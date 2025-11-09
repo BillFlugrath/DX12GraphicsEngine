@@ -160,7 +160,7 @@ AccelerationStructureBuffer BLAS_TLAS_Utilities::createBottomLevelAS(ID3D12Devic
 }
 
 //The TLAS specifies what "models" to draw and what the world space transform for each model is.  The TLAS does not
-//touch any vertex buffers (ie vbs) directly.  Each "model" has its raw vertices stored in the BLAS while
+//touch any vertex buffers (ie vbs) directly.  Each "model" has its raw vertices stored in a BLAS while
 //the BLAS is constructed.  Thus, adding 1 BLAS to the TLAS is the equivalent of adding a model to a scene.
 // In the top - level acceleration structure(TLAS), you instance each BLAS individually.
 
@@ -201,17 +201,16 @@ AccelerationStructureBuffer BLAS_TLAS_Utilities::createTopLevelAS(ID3D12Device5*
     {
         instanceDescs[i].InstanceID = i; // This value in the shader via InstanceID().This value in shader as SV_InstanceID
         
-        // InstanceContributionToHitGroupIndex  is the offset inside the shader-table to get correct hit shader and
-        // correct parameters for the shader.  It is not the exact hit group, but an offset from the 
+        // InstanceContributionToHitGroupIndex is part of the offset inside the shader-table to get correct hit shader and
+        // correct parameters for the shader.  It is not the exact hit group index, but an offset from the 
         // start of the hit-table entries specified in Raytrace().  The final index is calculated using the
         // RayContributionToHitGroupIndex – One of the parameters of the HLSL’s TraceRay() function.
         // It is the fourth parameter and also refered to as the Ray Index.
-        //Thus, this index specifies what shader and registers to use when a hit is detected.  If we wish all TLAS
-        //models could use a single shader table record.
+        //Thus, the final calculated index specifies what shader and registers to use when a hit is detected.  
      
          // The indices are relative to to the start of the hit-table entries specified in Raytrace().  The start index
         //specified in the TraceRay() is in the RayContributionToHitGroupIndex parameter (fourth parameter).
-        instanceDescs[i].InstanceContributionToHitGroupIndex = d3dModels[i].GetHitGroupIndex();
+        instanceDescs[i].InstanceContributionToHitGroupIndex = d3dModels[i].GetInstanceContributionToHitGroupIndex();
         instanceDescs[i].Flags = D3D12_RAYTRACING_INSTANCE_FLAG_NONE;
 
         instanceDescs[i].Transform[0][0] = instanceDescs[i].Transform[1][1] = instanceDescs[i].Transform[2][2] = 1; 

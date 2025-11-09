@@ -1,3 +1,15 @@
+!!MUST PUT TWO DLLs IN SAME DIR AS APP EXE!!!
+The dxcompiler.dll and dxil.dll files get loaded by code at runtime. They must be in the
+directory where app exe is built and put by VS. Thus, these two dll files MUST be MANUALLY COPIED
+from "./RequiredDlls/" to "./bin/x64/Debug/" and "./bin/x64/Release/"
+Where home dir is folder where the VS project resides.
+
+2. Ensure DXIL libraries are present
+The DirectX Shader Compiler (dxcompiler.dll) and DirectX Intermediate Language validator (dxil.dll)
+must be in the same directory as the executable!!!
+This is especially important for development builds where signing happens at runtime. 
+
+
 I added two macros to the Preprocessor Defintions for the project properties.
 STB_IMAGE_IMPLEMENTATION and TINYOBJLOADER_IMPLEMENTATION.  This was to fix missinf function defintions.
 It caused double definitions, so I added the two tests below which check if it is already defined and if it is,
@@ -20,12 +32,3 @@ C/C++ -> General->Additional Include Dirs:
 Engine\DXR\thirdparty
 Engine\DXR\thirdparty\dxc
 
-!!MUST PUT TWO DLLs IN SAME DIR AS APP EXE!!!
-The dxcompiler.dll and dxil.dll files get loaded by code at runtime. They are in the
-directory where app exe is built and put by VS.  (I manually put them there).  
-The path is L"./bin/x64/Debug/dxcompiler.dll"  Where home dir is folder where the VS project resides.
-
-2. Ensure DXIL libraries are present
-The DirectX Shader Compiler (dxcompiler.dll) and DirectX Intermediate Language validator (dxil.dll)
-must be in the same directory as the executable!!!
-This is especially important for development builds where signing happens at runtime. 
