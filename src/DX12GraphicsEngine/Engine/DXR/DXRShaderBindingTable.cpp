@@ -33,8 +33,19 @@ DXRShaderBindingTable::~DXRShaderBindingTable()
 // up to the maximum index passed to the instance description parameter InstanceContributionToHitGroupIndex.
 // for ex, when creating the TLAS, this line gets called twice with:
 // instanceDescs[i].InstanceContributionToHitGroupIndex = 0 and
-// instanceDescs[i].InstanceContributionToHitGroupIndex = 1 thus, there needs to be 2 entries for the closest hit 
-// shader in the shader table.
+// instanceDescs[i].InstanceContributionToHitGroupIndex = 1 thus, there needs to be 2 entries each specific closest hit 
+// shader group in the shader table.
+
+/*
+The formula for calculating the address of a hit group record in the SBT is: 
+HitGroupRecordAddress = start + stride * (rayContribution + (geometryMultiplier * geometryContribution) + instanceContribution)
+start: The starting address of the hit group table in memory.
+stride: The size of each hit group record in the table.
+rayContribution: A contribution from the ray, defined in the TraceRay call.
+geometryMultiplier: A multiplier for the geometry contribution, also defined in the TraceRay call.
+geometryContribution: The index of the geometry in the Bottom-Level Acceleration Structure (BLAS).
+instanceContribution: The instance contribution from the Top-Level Acceleration Structure (TLAS) instance. 
+*/
 
 void DXRShaderBindingTable::Create_Shader_Table(D3D12Global& d3d, DXRGlobal& dxr,
     D3D12Resources& resources)
@@ -68,12 +79,18 @@ void DXRShaderBindingTable::Create_Shader_Table(D3D12Global& d3d, DXRGlobal& dxr
 	HRESULT hr = dxr.sbt->Map(0, nullptr, (void**)&pData);
 	Utils::Validate(hr, L"Error: failed to map shader table!");
 
+
+	// ---------------------------------Begin Primary Ray Generation Shader  -------------------
+	// 
 	// Ray Generation program and local root argument data (descriptor table with constant buffer and IB/VB pointers)
 	memcpy(pData, dxr.rtpsoInfo->GetShaderIdentifier(L"RayGen_12"), shaderIdSize);
 
 	// Set the root arguments data. Point to start of descriptor heap
 	*reinterpret_cast<D3D12_GPU_DESCRIPTOR_HANDLE*>(pData + shaderIdSize) = resources.cbvSrvUavHeap->GetGPUDescriptorHandleForHeapStart();
 
+
+	// ---------------------------------Begin Miss Shaders  -------------------
+	// 
 	// Miss program 0.  This is Miss Program for Primary Ray.
 	pData += dxr.sbtEntrySize;
 	memcpy(pData, dxr.rtpsoInfo->GetShaderIdentifier(L"Miss_5"), shaderIdSize);
@@ -89,7 +106,8 @@ void DXRShaderBindingTable::Create_Shader_Table(D3D12Global& d3d, DXRGlobal& dxr
 	handle.ptr += handleIncrement * 6; //get handle to the 6th descriptor ie the cubemap
 	*reinterpret_cast<D3D12_GPU_DESCRIPTOR_HANDLE*>(pData + shaderIdSize) = handle; //set handle to the descriptor
 
-	//  2nd Miss program ie MissShadow (no data, uses empty signature).  This is Miss Program for Shadow Ray.
+
+	//Miss program 1 ie MissShadow (no data, uses empty signature).  This is Miss Program for Shadow Ray.
 	pData += dxr.sbtEntrySize;
 	memcpy(pData, dxr.rtpsoInfo->GetShaderIdentifier(L"MissShadow_5"), shaderIdSize);
 
@@ -99,21 +117,28 @@ void DXRShaderBindingTable::Create_Shader_Table(D3D12Global& d3d, DXRGlobal& dxr
 	// 
 	// Each Model Instance has a Chs for ray 0 table entry and a Chs for ray 1 table entry
 	// The first is for main color and the second is for the shadow hit ray
+	// Currently 4 Unique Hit Groups.  We only use the Closest Hit Shaders, thus there are 4 unique closest
+	// hit shaders that can be invoked when a ray is cast into the scene and hits triangle.
+	// 
+	// "HitGroup" has "ClosestHit" shader used for primary ray.  
+	// "HitGroup2"  has "ClosestHitShadow" shader used for shadow ray.  
+	// "HitGroup3"  has "ClosestHit_2" shader used for primary ray.  The sphere uses this hit group.
+	// "HitGroup4"  has "ClosestHitReflected" shader used for reflected ray. 
 
 	// ---------------------------- Instance 0 ---------------------------------------------
 	// 
-	// Closest Hit program 0 and local root argument data (descriptor table)
+	// HitGroup 0 Chs and local root argument data (descriptor table).  Used by Primary Ray.
 	pData += dxr.sbtEntrySize;
 	memcpy(pData, dxr.rtpsoInfo->GetShaderIdentifier(L"HitGroup"), shaderIdSize);
 
 	// Set the root arg data. Point to start of descriptor heap
 	*reinterpret_cast<D3D12_GPU_DESCRIPTOR_HANDLE*>(pData + shaderIdSize) = resources.cbvSrvUavHeap->GetGPUDescriptorHandleForHeapStart();
 
-	// Closest Hit program 1 ie shadow hit
+	// HitGroup2 Chs ie shadow hit.   Used by Shadow Ray.
 	pData += dxr.sbtEntrySize;
 	memcpy(pData, dxr.rtpsoInfo->GetShaderIdentifier(L"HitGroup2"), shaderIdSize);
 
-	// Closest Hit program 2 Reflect Ray and local root argument data (descriptor table)
+	// HitGroup4  Reflect Ray and local root argument data (descriptor table).   Used by Reflected Ray.
 	pData += dxr.sbtEntrySize;
 	memcpy(pData, dxr.rtpsoInfo->GetShaderIdentifier(L"HitGroup4"), shaderIdSize);
 
@@ -123,18 +148,18 @@ void DXRShaderBindingTable::Create_Shader_Table(D3D12Global& d3d, DXRGlobal& dxr
 
 	// ---------------------------- Instance 1---------------------------------------------
 
-	// Closest Hit program 2 and local root argument data (descriptor table )
+	// HitGroup 3 Chs and local root argument data (descriptor table).  Used by Primary Ray.
 	pData += dxr.sbtEntrySize;
 	memcpy(pData, dxr.rtpsoInfo->GetShaderIdentifier(L"HitGroup3"), shaderIdSize);
 
 	// Set the root arg data. Point to start of descriptor heap
 	*reinterpret_cast<D3D12_GPU_DESCRIPTOR_HANDLE*>(pData + shaderIdSize) = resources.cbvSrvUavHeap->GetGPUDescriptorHandleForHeapStart();
 
-	// Closest Hit program 1 ie shadow hit
+	// HitGroup2 Chs ie shadow hit.   Used by Shadow Ray.
 	pData += dxr.sbtEntrySize;
 	memcpy(pData, dxr.rtpsoInfo->GetShaderIdentifier(L"HitGroup2"), shaderIdSize);
 
-	// Closest Hit program 2 Reflect Ray and local root argument data (descriptor table)
+	// HitGroup4  Reflect Ray and local root argument data (descriptor table).   Used by Reflected Ray.
 	pData += dxr.sbtEntrySize;
 	memcpy(pData, dxr.rtpsoInfo->GetShaderIdentifier(L"HitGroup4"), shaderIdSize);
 

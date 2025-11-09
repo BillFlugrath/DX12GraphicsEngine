@@ -9,8 +9,6 @@ struct ShadowPayload
 	float isVisible;
 };
 
-
-
 [shader("closesthit")]
 void ClosestHitShadow(inout ShadowPayload payload, in BuiltInTriangleIntersectionAttributes attribs)
 {
@@ -126,19 +124,14 @@ void ClosestHit(inout HitInfo payload : SV_RayPayload,
 			color *= float3(0.4, 0.4, 0.4); // float3(1, 1, 0);
 	}
 
-	//TODO Add secondary reflected ray
+	//Add secondary reflected ray
 	//HitInfo payloadReflected = CastReflectedRay(vertex.normal);
-	
+	//float3 reflectedColor = payloadReflected.ShadedColorAndHitT.rgb;
+	//color += reflectedColor * 0.1;
 
 	//if (InstanceIndex() == 1)
 	//{
-		//if here, the sample is from the sphere's triangle
-		// Sample the cubemap texture using the normalized ray direction
-		//float3 reflct = reflect(WorldRayDirection(), normalize(vertex.normal));
-		//float4 cubemapColor = cubeMap_0.SampleLevel(g_SamplerState, normalize(reflct), 0);
-
-		//payload.ShadedColorAndHitT = float4(cubemapColor.rgb, RayTCurrent());
-		//return;
+		
 	//}
 
 	payload.ShadedColorAndHitT = float4(color, RayTCurrent());  //use Texture2d sample

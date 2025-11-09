@@ -205,8 +205,7 @@ AccelerationStructureBuffer BLAS_TLAS_Utilities::createTopLevelAS(ID3D12Device5*
         // correct parameters for the shader.  It is not the exact hit group, but an offset from the 
         // start of the hit-table entries specified in Raytrace().  The final index is calculated using the
         // RayContributionToHitGroupIndex – One of the parameters of the HLSL’s TraceRay() function.
-        // It is the third parameter and also refered to as the Ray Index.
-        // Since we have unique constant-buffer for each instance, we need a different offset for each model instance.
+        // It is the fourth parameter and also refered to as the Ray Index.
         //Thus, this index specifies what shader and registers to use when a hit is detected.  If we wish all TLAS
         //models could use a single shader table record.
      

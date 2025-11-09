@@ -79,8 +79,8 @@ void DX12Raytracing_2::OnInit()
 	std::vector<D3DModel> &vModelObjects = m_pD3DSceneModels->GetModelObjects();
 
 	//Set world space position of the models
-	vModelObjects[0].SetPosition(-1.0, 0, 0);
-	vModelObjects[1].SetPosition(1.5, 0, 0);
+	vModelObjects[0].SetPosition(-1.0, -0.5, 0); //cube and axes
+	vModelObjects[1].SetPosition(1.5, 0, 0); //sphere
 	vModelObjects[2].SetPosition(-50, -1.0, -50); //plane
 	vModelObjects[3].SetPosition(-3, 0, 0); //teapot
 
