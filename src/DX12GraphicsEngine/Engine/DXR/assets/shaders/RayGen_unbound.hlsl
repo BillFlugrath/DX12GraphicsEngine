@@ -1,5 +1,5 @@
 
-#include "Common.hlsl"
+#include "Common_unbound.hlsl"
 
 // ---[ Ray Generation Shader ]---
 
@@ -10,7 +10,7 @@ void RayGen()
 	uint2 LaunchDimensions = DispatchRaysDimensions().xy;
 	uint  PixelLinearIndex = LaunchIndex.x + (LaunchIndex.y * LaunchDimensions.x);
 
-	//BillF put the value in the -1 to +1 range
+	//put the value in the -1 to +1 range
 	float2 d = (((LaunchIndex.xy + 0.5f) / outputResolution.xy) * 2.f - 1.f);
 	float aspectRatio = (outputResolution.x / outputResolution.y);
 
@@ -42,7 +42,7 @@ void RayGen()
 		SceneBVH,
 		RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
 		0xFF,
-		1,   //RayContributionToHitGroupIndex.  Also called Ray index.  
+		PRIMARY_RAY_INDEX,   //RayContributionToHitGroupIndex.  Also called Ray index.  
 		0,
 		0, //index for miss shader
 		ray,

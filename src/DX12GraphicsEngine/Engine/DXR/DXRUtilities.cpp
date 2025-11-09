@@ -125,7 +125,7 @@ void DXRUtilities::Create_Miss_Program(D3D12Global& d3d, DXRGlobal& dxr, D3D12Sh
 		// Describe the ray miss root signature
 	D3D12_DESCRIPTOR_RANGE ranges[1];
 
-	ranges[0].BaseShaderRegister = 7;  //the cube map is register t7 in the common.hlsl file.
+	ranges[0].BaseShaderRegister = 3;  
 	ranges[0].NumDescriptors = 1;
 	ranges[0].RegisterSpace = 0; //cube map uses register space "0"
 	ranges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;

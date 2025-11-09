@@ -1,9 +1,6 @@
 
 #include "Common_unbound.hlsl"
 
-#define SHADOW_RAY_INDEX 2
-#define REFLECT_RAY_INDEX 3
-
 struct ShadowPayload
 {
 	float isVisible;

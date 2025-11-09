@@ -1,6 +1,10 @@
 
 // ---[ Structures ]---
 
+#define PRIMARY_RAY_INDEX 1
+#define SHADOW_RAY_INDEX 2
+#define REFLECT_RAY_INDEX 3
+
 struct HitInfo
 {
 	float4 ShadedColorAndHitT : SHADED_COLOR_AND_HIT_T;

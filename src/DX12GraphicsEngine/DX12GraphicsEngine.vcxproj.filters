@@ -328,9 +328,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Engine\DXR\assets\shaders\Common.hlsl">
-      <Filter>EngineAndDXR\DXR\assets\shaders</Filter>
-    </FxCompile>
     <FxCompile Include="Engine\DXR\assets\shaders\ClosestHit_unbound.hlsl">
       <Filter>EngineAndDXR\DXR\assets\shaders</Filter>
     </FxCompile>
