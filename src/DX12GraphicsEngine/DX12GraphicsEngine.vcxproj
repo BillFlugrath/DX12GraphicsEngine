@@ -93,10 +93,9 @@
       <EntryPointName />
     </FxCompile>
     <PostBuildEvent>
-      <Command>xcopy /y  .\RequiredDlls\dxcompiler.dll  .\bin\x64\Debug\dxcompiler.dll
-xcopy /y  .\RequiredDlls\dxil.dll  .\bin\x64\Debug\dxil.dll
-xcopy /y  .\RequiredDlls\dxcompiler.dll  .\bin\x64\Releasedxcompiler.dll
-xcopy /y  .\RequiredDlls\dxil.dll  .\bin\x64\Release\dxil.dll</Command>
+      <Command>xcopy /y  ".\RequiredDlls\dxcompiler.dll " ".\bin\x64\Debug\dxcompiler.dll"
+xcopy /y  ".\RequiredDlls\dxil.dll"  ".\bin\x64\Debug\dxil.dll"
+</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -150,10 +149,8 @@ xcopy /y  .\RequiredDlls\dxil.dll  .\bin\x64\Release\dxil.dll</Command>
       <EntryPointName />
     </FxCompile>
     <PostBuildEvent>
-      <Command>xcopy /y  .\RequiredDlls\dxcompiler.dll  .\bin\x64\Debug\dxcompiler.dll
-xcopy /y  .\RequiredDlls\dxil.dll  .\bin\x64\Debug\dxil.dll
-xcopy /y  .\RequiredDlls\dxcompiler.dll  .\bin\x64\Releasedxcompiler.dll
-xcopy /y  .\RequiredDlls\dxil.dll  .\bin\x64\Release\dxil.dll</Command>
+      <Command>xcopy /y  ".\RequiredDlls\dxcompiler.dll " ".\bin\x64\Release\dxcompiler.dll"
+xcopy /y  ".\RequiredDlls\dxil.dll"  ".\bin\x64\Release\dxil.dll"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
