@@ -40,20 +40,14 @@ ShadowPayload CastShadowRay(float3 norm)
 
 	//The fourth parameter is the RayContributionToHitGroupIndex.  Also called Ray index. The final hitgroup index to use
 	//is calculated using the Instance geometry in each TLAS instance called InstanceContributionToHitGroupIndex.  Thus,
-	//both the TraceRay arg and the instance setting is used to calculate hitgroup index in the SBT (shader binding table).
-	
-	/*TraceRay( scene, RAY_FLAG_NONE, instancesToQuery, // What geometry?
-		hitGroup, numHitGroups, missShader,     // Which shaders?
-		ray,                                    // What ray to trace?
-		payload );                              // What data to use?
-	*/
+	//both the TraceRay args and the instance setting is used to calculate hitgroup index in the SBT (shader binding table).
 
 	TraceRay(SceneBVH, 
-		 RAY_FLAG_CULL_FRONT_FACING_TRIANGLES  /*rayFlags*/,
-		0xFF, 
+		 RAY_FLAG_CULL_FRONT_FACING_TRIANGLES,  //rayFlags
+		0xFF, //instancesToQuery ie What geometry?
 		SHADOW_RAY_INDEX,	//RayContributionToHitGroupIndex.  Also called Ray index.  
-		0, 
-		1, //miss shader index
+		0,	//GeometryMultiplier . Also " R-stride". An SBT stride to apply between each geometry’s hit group records
+		1,					//miss shader index
 		ray, shadowPayload);
 
 	return shadowPayload;
@@ -79,10 +73,10 @@ HitInfo CastReflectedRay(float3 norm)
 	HitInfo payload;
 
 	TraceRay(SceneBVH,
-		RAY_FLAG_CULL_BACK_FACING_TRIANGLES  /*rayFlags*/,
-		0xFF,
+		RAY_FLAG_CULL_BACK_FACING_TRIANGLES,  //rayFlags
+		0xFF, //instancesToQuery ie What geometry?
 		REFLECT_RAY_INDEX,	//RayContributionToHitGroupIndex.  Also called Ray index.  
-		0,
+		0, //GeometryMultiplier . Also " R-stride". An SBT stride to apply between each geometry’s hit group records
 		0, //miss shader index
 		ray, payload);
 

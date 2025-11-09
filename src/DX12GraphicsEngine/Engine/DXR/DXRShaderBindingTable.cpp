@@ -28,23 +28,49 @@ DXRShaderBindingTable::~DXRShaderBindingTable()
 * Create the DXR shader table.
 */
 
-// The Shader Binding Table is where all programs and TLAS are bind together to know which program to execute.
+// The Shader Binding Table is where all programs and TLAS are bound together to know which program to execute.
 // There is one RayGen, at least one Miss, followed by the Hit.There should be n entries for the Hit, 
 // up to the maximum index passed to the instance description parameter InstanceContributionToHitGroupIndex.
-// for ex, when creating the TLAS, this line gets called twice with:
-// instanceDescs[i].InstanceContributionToHitGroupIndex = 0 and
-// instanceDescs[i].InstanceContributionToHitGroupIndex = 1 thus, there needs to be 2 entries each specific closest hit 
-// shader group in the shader table.
+// for ex, when creating the TLAS, consider two instances in the TLAS that have been assigned different values for
+// InstanceContributionToHitGroupIndex:
+// instanceDescs[0].InstanceContributionToHitGroupIndex = 0 and
+// instanceDescs[1].InstanceContributionToHitGroupIndex = 1 thus, there needs to be 2 entries in the shader table 
+// for the Higroup records.  One record for each of the 2 instances. 
+// If the instances use the same Hitgroup ie "0":
+// instanceDescs[0].InstanceContributionToHitGroupIndex = 0 and
+// instanceDescs[1].InstanceContributionToHitGroupIndex = 0
+// Then only a single record is used in the SBT.
 
 /*
+* See page 197 GPU Raytracing Gems 2 for the equation, parameters, and very good explaination.
+
 The formula for calculating the address of a hit group record in the SBT is: 
-HitGroupRecordAddress = start + stride * (rayContribution + (geometryMultiplier * geometryContribution) + instanceContribution)
-start: The starting address of the hit group table in memory.
-stride: The size of each hit group record in the table.
-rayContribution: A contribution from the ray, defined in the TraceRay call.
-geometryMultiplier: A multiplier for the geometry contribution, also defined in the TraceRay call.
-geometryContribution: The index of the geometry in the Bottom-Level Acceleration Structure (BLAS).
-instanceContribution: The instance contribution from the Top-Level Acceleration Structure (TLAS) instance. 
+HitGroupRecordAddress = Start + Stride * (InstanceContribution + RayContribution + (GeometryMultiplier * GeometryContribution)  )
+
+start: The starting address of the hit group table in memory (not a parameter)
+stride: The size of each hit group record in the table. (not a parameter)
+
+InstanceContribution: The instance contribution from the TLAS instance ie InstanceContributionToHitGroupIndex
+RayContribution: A contribution from the ray, defined in the TraceRay call.  The Ray Index.
+GeometryMultiplier: A multiplier for the geometry contribution, also defined in the TraceRay call.  
+GeometryContribution: The index of the geometry in the Bottom-Level Acceleration Structure (BLAS) ie Geometry Index (G-Id)
+
+
+(note: The "Start" and "Stride" refer to SBT first Hitgroup address and SBT Record Stride in bytes. 
+These are set when creating the SBT and are not parameters).
+
+Notes: 
+InstanceContributionToHitGroupIndex is also called the starting offset or Instance Offset.  Manually set on the TLAS instance.
+
+RayContribution called "R-offset", typically referred to as the ray type.
+
+The "GeometryMultiplier" typically referred to  an SBT stride to apply between each geometry’s hit group records
+also called  "R-stride". The value is typically referred to as the number of ray types.
+
+The GeometryContribution is the GeometryIndex() value, G-Id.  It is the geometry index inside a specific BLAS.  For ex, if a Model
+has 2 vertex buffers, this means the BLAS corresponding to the model has two Geometries with index 0 and index 1.  If the model
+only has 1 vb, then the only geometry index is index=0.  These are autoassigned as the BLAS is created.  Geometry ID.
+
 */
 
 void DXRShaderBindingTable::Create_Shader_Table(D3D12Global& d3d, DXRGlobal& dxr,
@@ -120,7 +146,7 @@ void DXRShaderBindingTable::Create_Shader_Table(D3D12Global& d3d, DXRGlobal& dxr
 	// Currently 4 Unique Hit Groups.  We only use the Closest Hit Shaders, thus there are 4 unique closest
 	// hit shaders that can be invoked when a ray is cast into the scene and hits triangle.
 	// 
-	// "HitGroup" has "ClosestHit" shader used for primary ray.  
+	// "HitGroup"	has "ClosestHit" shader used for primary ray.  
 	// "HitGroup2"  has "ClosestHitShadow" shader used for shadow ray.  
 	// "HitGroup3"  has "ClosestHit_2" shader used for primary ray.  The sphere uses this hit group.
 	// "HitGroup4"  has "ClosestHitReflected" shader used for reflected ray. 
