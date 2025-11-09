@@ -192,6 +192,7 @@
     <ClInclude Include="Engine\DXR\DXResourceUtilities.h" />
     <ClInclude Include="Engine\DXR\DXRManager.h" />
     <ClInclude Include="Engine\DXR\DXRPipelineStateObject.h" />
+    <ClInclude Include="Engine\DXR\DXRShaderBindingTable.h" />
     <ClInclude Include="Engine\DXR\DXRUtilities.h" />
     <ClInclude Include="Engine\DXR\DXRVertices.h" />
     <ClInclude Include="Engine\DXR\DXShaderUtilities.h" />
@@ -241,6 +242,7 @@
     <ClCompile Include="Engine\DXR\DXResourceUtilities.cpp" />
     <ClCompile Include="Engine\DXR\DXRManager.cpp" />
     <ClCompile Include="Engine\DXR\DXRPipelineStateObject.cpp" />
+    <ClCompile Include="Engine\DXR\DXRShaderBindingTable.cpp" />
     <ClCompile Include="Engine\DXR\DXRUtilities.cpp" />
     <ClCompile Include="Engine\DXR\DXShaderUtilities.cpp" />
     <ClCompile Include="Engine\DXR\Utils.cpp" />

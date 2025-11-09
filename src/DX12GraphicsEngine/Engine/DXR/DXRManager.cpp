@@ -17,18 +17,15 @@
 #include "DXResourceUtilities.h"
 #include "DXRPipelineStateObject.h"
 #include "DXResourceBindingUtilities.h"
+#include "DXRShaderBindingTable.h"
 
 #include "Utils.h"
 #include "Window.h"
 
 
-const wstring kRayGenFilename(L"Engine\\DXR\\assets\\shaders\\RayGen.hlsl");
-const wstring kMissFilename(L"Engine\\DXR\\assets\\shaders\\Miss.hlsl");
-const wstring kClosestHitFilename(L"Engine\\DXR\\assets\\shaders\\ClosestHit.hlsl");
-
-const wstring kRayGenUnboundFilename(L"Engine\\DXR\\assets\\shaders\\RayGen_unbound.hlsl");
-const wstring kMissUnboundFilename(L"Engine\\DXR\\assets\\shaders\\Miss_unbound.hlsl");
-const wstring kClosestHitUnboundFilename(L"Engine\\DXR\\assets\\shaders\\ClosestHit_unbound.hlsl");
+const wstring kRayGenFilename(L"Engine\\DXR\\assets\\shaders\\RayGen_unbound.hlsl");
+const wstring kMissFilename(L"Engine\\DXR\\assets\\shaders\\Miss_unbound.hlsl");
+const wstring kClosestHitFilename(L"Engine\\DXR\\assets\\shaders\\ClosestHit_unbound.hlsl");
 
 
 DXRManager::DXRManager() :
@@ -44,6 +41,7 @@ m_Width(0)
 	m_pBLAS_TLAS_Utilities = shared_ptr<BLAS_TLAS_Utilities>(new BLAS_TLAS_Utilities);
 	m_pDXRPipelineStateObject = shared_ptr<DXRPipelineStateObject>(new DXRPipelineStateObject);
 	m_pDXResourceBindingUtilities = shared_ptr<DXResourceBindingUtilities>(new DXResourceBindingUtilities);
+	m_pDXRShaderBindingTable = shared_ptr<DXRShaderBindingTable>(new DXRShaderBindingTable);
 
 	if (m_bUseDebugConsole)
 		CreateDebugConsole();
@@ -167,10 +165,11 @@ HRESULT DXRManager::CreateShadersAndRootSignatures(D3DSceneModels& d3dSceneModel
 		numMeshObjects += num_meshes;
 	}
  
-	m_pDXRUtilities->Create_RayGen_Program(d3d, dxr, shaderCompiler, kRayGenUnboundFilename);
-	m_pDXRUtilities->Create_Miss_Program(d3d, dxr, shaderCompiler, kMissUnboundFilename);
+	m_pDXRUtilities->Create_RayGen_Program(d3d, dxr, shaderCompiler, kRayGenFilename);
+	m_pDXRUtilities->Create_Miss_Program(d3d, dxr, shaderCompiler, kMissFilename);
+
 	uint32_t num_mesh_objects_total = 0;
-	m_pDXRUtilities->Create_Closest_Hit_Program(d3d, dxr, shaderCompiler, kClosestHitUnboundFilename,
+	m_pDXRUtilities->Create_Closest_Hit_Program(d3d, dxr, shaderCompiler, kClosestHitFilename,
 		numMeshObjects);
 	
 
@@ -198,7 +197,7 @@ HRESULT DXRManager::Create_PSO_and_ShaderTable()
 	HRESULT hr = EXIT_SUCCESS;
 
 	m_pDXRPipelineStateObject->Create_Pipeline_State_Object(d3d, dxr);
-	m_pDXRPipelineStateObject->Create_Shader_Table(d3d, dxr, resources);
+	m_pDXRShaderBindingTable->Create_Shader_Table(d3d, dxr, resources);
 	
 	return hr;
 }

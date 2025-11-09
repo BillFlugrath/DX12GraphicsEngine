@@ -213,6 +213,9 @@
     <ClInclude Include="DX12Raytracing_2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\DXR\DXRShaderBindingTable.h">
+      <Filter>EngineAndDXR\DXR</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -313,6 +316,9 @@
     </ClCompile>
     <ClCompile Include="DX12Raytracing_2.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\DXR\DXRShaderBindingTable.cpp">
+      <Filter>EngineAndDXR\DXR</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

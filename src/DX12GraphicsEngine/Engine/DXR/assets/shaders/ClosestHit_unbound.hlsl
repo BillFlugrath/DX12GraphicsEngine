@@ -1,6 +1,8 @@
 
 #include "Common_unbound.hlsl"
-#define SHADOW_RAY_INDEX 1
+
+#define SHADOW_RAY_INDEX 2
+#define REFLECT_RAY_INDEX 3
 
 struct ShadowPayload
 {
@@ -54,12 +56,42 @@ ShadowPayload CastShadowRay(float3 norm)
 	TraceRay(SceneBVH, 
 		 RAY_FLAG_CULL_FRONT_FACING_TRIANGLES  /*rayFlags*/,
 		0xFF, 
-		2,	//RayContributionToHitGroupIndex.  Also called Ray index.  
+		SHADOW_RAY_INDEX,	//RayContributionToHitGroupIndex.  Also called Ray index.  
 		0, 
 		1, //miss shader index
 		ray, shadowPayload);
 
 	return shadowPayload;
+}
+
+HitInfo CastReflectedRay(float3 norm)
+{
+	float hitT = RayTCurrent();
+	float3 rayDirW = WorldRayDirection();
+	float3 rayOriginW = WorldRayOrigin();
+
+	// Find the world-space hit position
+	float3 posW = rayOriginW + hitT * rayDirW;
+
+	// Fire a shadow ray. The direction is hard-coded here, but can be fetched from a constant-buffer
+	RayDesc ray;
+	ray.Origin = posW;
+	ray.Direction = reflect(WorldRayDirection(), normalize(norm));
+	ray.TMin = 0.01;
+	ray.TMax = 100000;
+
+	//unused flags | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH 
+	HitInfo payload;
+
+	TraceRay(SceneBVH,
+		RAY_FLAG_CULL_BACK_FACING_TRIANGLES  /*rayFlags*/,
+		0xFF,
+		REFLECT_RAY_INDEX,	//RayContributionToHitGroupIndex.  Also called Ray index.  
+		0,
+		0, //miss shader index
+		ray, payload);
+
+	return payload;
 }
 
 // ---[ Closest Hit Shader ]---
@@ -93,6 +125,9 @@ void ClosestHit(inout HitInfo payload : SV_RayPayload,
 		if (InstanceIndex() == 2) //apply to plane only
 			color *= float3(0.4, 0.4, 0.4); // float3(1, 1, 0);
 	}
+
+	//TODO Add secondary reflected ray
+	//HitInfo payloadReflected = CastReflectedRay(vertex.normal);
 	
 
 	//if (InstanceIndex() == 1)
@@ -105,6 +140,25 @@ void ClosestHit(inout HitInfo payload : SV_RayPayload,
 		//payload.ShadedColorAndHitT = float4(cubemapColor.rgb, RayTCurrent());
 		//return;
 	//}
+
+	payload.ShadedColorAndHitT = float4(color, RayTCurrent());  //use Texture2d sample
+
+}
+
+[shader("closesthit")]
+void ClosestHitReflected(inout HitInfo payload : SV_RayPayload,
+	IntersectionAttributes attrib : SV_IntersectionAttributes)
+{
+
+	uint triangleIndex = PrimitiveIndex(); //get triangle index
+	float3 barycentrics = float3((1.0f - attrib.uv.x - attrib.uv.y), attrib.uv.x, attrib.uv.y);
+	VertexAttributes vertex = GetVertexAttributes(triangleIndex, barycentrics);
+
+	vertex.uv.y = 1.0f - vertex.uv.y; //flip they coord
+
+	uint meshIndex = GetMeshIndex();
+	uint texIndex = diffuseTextureIndexForMesh[meshIndex].x;
+	float3 color = diffuse_textures[texIndex].SampleLevel(g_SamplerState, vertex.uv, 0);
 
 	payload.ShadedColorAndHitT = float4(color, RayTCurrent());  //use Texture2d sample
 
@@ -154,8 +208,12 @@ void ClosestHit_2(inout HitInfo payload : SV_RayPayload,
 	// Sample the cubemap texture using the normalized ray direction
 	float3 reflct = reflect(WorldRayDirection(), normalize(vertex.normal));
 	float4 cubemapColor = cubeMap_0.SampleLevel(g_SamplerState, normalize(reflct),0);
-
 	payload.ShadedColorAndHitT = float4(cubemapColor.rgb, RayTCurrent());
+
+	//Add secondary reflected ray
+	HitInfo payloadReflected = CastReflectedRay(vertex.normal);
+
+	payload.ShadedColorAndHitT = float4(payloadReflected.ShadedColorAndHitT.rgb, RayTCurrent());
 
 }
 

@@ -14,6 +14,7 @@ class DXRUtilities;
 class BLAS_TLAS_Utilities;
 class DXRPipelineStateObject;
 class DXResourceBindingUtilities;
+class DXRShaderBindingTable;
 
 class DXRManager
 {
@@ -63,6 +64,7 @@ protected:
 	std::shared_ptr< BLAS_TLAS_Utilities> m_pBLAS_TLAS_Utilities;
 	std::shared_ptr< DXRPipelineStateObject> m_pDXRPipelineStateObject;
 	std::shared_ptr< DXResourceBindingUtilities> m_pDXResourceBindingUtilities;
+	std::shared_ptr< DXRShaderBindingTable > m_pDXRShaderBindingTable;
 
 	//Example members
 	HWND window;

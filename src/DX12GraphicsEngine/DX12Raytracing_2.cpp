@@ -70,7 +70,7 @@ void DX12Raytracing_2::OnInit()
 	LoadModelsAndTextures();
 
 	//Create the Scene by adding models to a vector.  Each model will become a TLAS instance
-	int numModels = 3;
+	int numModels = 4;
 	for (int i = 0; i < numModels; ++i)
 	{
 		m_pD3DSceneModels->AddModel( D3DModel() );
@@ -79,14 +79,17 @@ void DX12Raytracing_2::OnInit()
 	std::vector<D3DModel> &vModelObjects = m_pD3DSceneModels->GetModelObjects();
 
 	//Set world space position of the models
-	vModelObjects[0].SetPosition(0, 0, 0);
+	vModelObjects[0].SetPosition(-1.0, 0, 0);
 	vModelObjects[1].SetPosition(1.5, 0, 0);
-	vModelObjects[2].SetPosition(-50, -1.0, -50);
+	vModelObjects[2].SetPosition(-50, -1.0, -50); //plane
+	vModelObjects[3].SetPosition(-3, 0, 0); //teapot
 
 	//Set hit group for TLAS objects ie set hit group for each model
+	//index 1 is used for shadow hit
 	vModelObjects[0].SetHitGroupIndex(0); //cube and axes
-	vModelObjects[1].SetHitGroupIndex(2);  //sphere
+	vModelObjects[1].SetHitGroupIndex(3);  //sphere
 	vModelObjects[2].SetHitGroupIndex(0);  //plane
+	vModelObjects[3].SetHitGroupIndex(0);  //teapot
 
 	//Create D3DTexture objects
 	D3DTexture tex0,tex1,tex2,tex3, tex4;
@@ -100,10 +103,10 @@ void DX12Raytracing_2::OnInit()
 	std::vector< D3DTexture > vBoundTextures{ tex0, tex1, tex4 }; //bound textures
 
 	//m_pD3DSceneTextures2D holds unbound textures of type textures2D
-	m_pD3DSceneTextures2D->AddTexture(tex0); //index 0
-	m_pD3DSceneTextures2D->AddTexture(tex1);  //index 1
-	m_pD3DSceneTextures2D->AddTexture(tex2);  //index 2
-	m_pD3DSceneTextures2D->AddTexture(tex3);  //index 3
+	m_pD3DSceneTextures2D->AddTexture(tex0); //index 0  fish
+	m_pD3DSceneTextures2D->AddTexture(tex1);  //index 1 countdown1
+	m_pD3DSceneTextures2D->AddTexture(tex2);  //index 2 countdown2
+	m_pD3DSceneTextures2D->AddTexture(tex3);  //index 3 countdown3
 
 
 	//get texture width and height.  Currently setting these into HLSL to do texture.Load.
@@ -128,13 +131,16 @@ void DX12Raytracing_2::OnInit()
 	//m_pD3DModel_1 has 1 mesh
 	vModelObjects[1].AddMesh(mesh2);
 
-	vModelObjects[2].AddMesh(mesh4);
+	vModelObjects[2].AddMesh(mesh4); //plane
+
+	vModelObjects[3].AddMesh(mesh1); //plane
 
 	// SetTexture2DIndex sets the same index for all meshes in model.  This sets the diffuse (albedo) texture for the
 	//mesh objects by setting a numeric index that is used in an unbound array of texture2D objects.
 	vModelObjects[0].SetTexture2DIndex(0);
 	vModelObjects[1].SetTexture2DIndex(1);
 	vModelObjects[2].SetTexture2DIndex(3);
+	vModelObjects[3].SetTexture2DIndex(2);
 
 	// SetTexture2DIndexForMesh allow sfor setting the texture for a specific mesh in the model
 	vModelObjects[0].SetTexture2DIndexForMesh(0, 1); //set mesh0 texture1

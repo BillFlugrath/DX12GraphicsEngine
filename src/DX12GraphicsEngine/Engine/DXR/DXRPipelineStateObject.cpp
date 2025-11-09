@@ -76,7 +76,7 @@ void DXRPipelineStateObject::Create_Pipeline_State_Object(D3D12Global& d3d, DXRG
 	// 1 for Miss shader and its local assocation subobject
 	UINT index = 0;
 	vector<D3D12_STATE_SUBOBJECT> subobjects;
-	subobjects.resize(17);
+	subobjects.resize(18);
 	
 	//We create one DXIL subobject ie D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY for each shader type:
 	//ie ray gen, closest hit, and miss.
@@ -139,8 +139,9 @@ void DXRPipelineStateObject::Create_Pipeline_State_Object(D3D12Global& d3d, DXRG
 
 	// -------------------------- Begin Add DXIL state subobject for the Closest Hit and shadow shaders exported------------
 
-	std::vector<std::wstring> symbolExport = { L"ClosestHit",  L"ClosestHitShadow", L"ClosestHit_2", L"MissShadow" };
-	std::vector<std::wstring> symbolNameExport = { L"ClosestHit_76", L"ClosestHitShadow_1",  L"ClosestHit_77", L"MissShadow_5" };
+	std::vector<std::wstring> symbolExport = { L"ClosestHit",  L"ClosestHitShadow", L"ClosestHit_2", L"MissShadow", L"ClosestHitReflected"};
+	std::vector<std::wstring> symbolNameExport = { L"ClosestHit_76", L"ClosestHitShadow_1",  L"ClosestHit_77", L"MissShadow_5",
+												L"ClosestHitReflected_1"};
 
 	size_t numExports = symbolExport.size();
 
@@ -172,8 +173,8 @@ void DXRPipelineStateObject::Create_Pipeline_State_Object(D3D12Global& d3d, DXRG
 	// -------------------------- Begin Create state subobject for the Hit Groups exported ------------
 	
 	//Create a state subobject for each hit group
-	std::vector<std::wstring> hitGroupNames = { L"HitGroup", L"HitGroup2", L"HitGroup3" };
-	std::vector<std::wstring> symbolNameExport2 = { L"ClosestHit_76", L"ClosestHitShadow_1",  L"ClosestHit_77" };
+	std::vector<std::wstring> hitGroupNames = { L"HitGroup", L"HitGroup2", L"HitGroup3", L"HitGroup4" };
+	std::vector<std::wstring> symbolNameExport2 = { L"ClosestHit_76", L"ClosestHitShadow_1",  L"ClosestHit_77", L"ClosestHitReflected_1" };
 	size_t numHitGroups= hitGroupNames.size();
 
 	std::vector< D3D12_HIT_GROUP_DESC> hitGroupDesc; //create one D3D12_EXPORT_DESC for each fHit Groupb
@@ -227,7 +228,7 @@ void DXRPipelineStateObject::Create_Pipeline_State_Object(D3D12Global& d3d, DXRG
 	//Remember that we refer to hit shaders via the HitGroup name as shown below in shaderExports.  The raygen and
 	//miss shaders use the actual shader name that was exported.
 
-	const WCHAR* shaderExports[] = { L"RayGen_12", L"Miss_5", L"HitGroup",  L"HitGroup2",  L"MissShadow_5",  L"HitGroup3" };
+	const WCHAR* shaderExports[] = { L"RayGen_12", L"Miss_5", L"HitGroup",  L"HitGroup2",  L"MissShadow_5",  L"HitGroup3", L"HitGroup4"};
 
 	// Add a state subobject for the association between shaders and the payload
 	D3D12_SUBOBJECT_TO_EXPORTS_ASSOCIATION shaderPayloadAssociation = {};
@@ -311,7 +312,7 @@ void DXRPipelineStateObject::Create_Pipeline_State_Object(D3D12Global& d3d, DXRG
 
 	// Create a list of the shader export names that use the chs signature
 	//const WCHAR* chsSigExports[] = { L"HitGroup",  L"HitGroup2" };
-	const WCHAR* chsSigExports[] = { L"HitGroup",  L"HitGroup3" };
+	const WCHAR* chsSigExports[] = { L"HitGroup",  L"HitGroup3", L"HitGroup4" };
 
 	// Add a state subobject to describe association between the chs shader and its local root signature.
 	// First, we create a D3D12_SUBOBJECT_TO_EXPORTS_ASSOCIATION to describe the association.  Then use this
@@ -384,117 +385,6 @@ void DXRPipelineStateObject::Create_Pipeline_State_Object(D3D12Global& d3d, DXRG
 	hr = dxr.rtpso->QueryInterface(IID_PPV_ARGS(&dxr.rtpsoInfo));
 	Utils::Validate(hr, L"Error: failed to get RTPSO info object!");
 }
-
-/**
-* Create the DXR shader table.
-*/
-
-// The Shader Binding Table is where all programs and TLAS are bind together to know which program to execute.
-// There is one RayGen, at least one Miss, followed by the Hit.There should be n entries for the Hit, 
-// up to the maximum index passed to the instance description parameter InstanceContributionToHitGroupIndex.
-// for ex, when creating the TLAS, this line gets called twice with:
-// instanceDescs[i].InstanceContributionToHitGroupIndex = 0 and
-// instanceDescs[i].InstanceContributionToHitGroupIndex = 1 thus, there needs to be 2 entries for the closest hit 
-// shader in the shader table.
-
-void DXRPipelineStateObject::Create_Shader_Table(D3D12Global& d3d, DXRGlobal& dxr,
-	D3D12Resources& resources)
-{
-	/*
-	The Shader Table layout is as follows:
-	Entry 0 - Ray Generation shader
-	Entry 1 - Miss shader
-	Entry 3 - Closest Hit shader 0
-	Entry 4 - Closest Hit shader 1
-	All shader records in the Shader Table must have the same size, so shader record size will be based on the
-	largest required entry.The ray generation program requires the largest entry:
-	sizeof(shader identifier) + 8 bytes for a descriptor table.
-	The entry size must be aligned up to D3D12_RAYTRACING_SHADER_BINDING_TABLE_RECORD_BYTE_ALIGNMENT
-	*/
-
-	uint32_t numberOfRecords = 7;
-
-	uint32_t shaderIdSize = D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES;
-	uint32_t sbtSize = 0;
-
-	dxr.sbtEntrySize = shaderIdSize;
-	dxr.sbtEntrySize += 8;	// CBV/SRV/UAV descriptor table 
-	dxr.sbtEntrySize = ALIGN(D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT, dxr.sbtEntrySize);
-
-	sbtSize = (dxr.sbtEntrySize * numberOfRecords);	
-	sbtSize = ALIGN(D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT, sbtSize);
-
-	// Create the shader table buffers
-	D3D12BufferCreateInfo bufferInfo(sbtSize, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_GENERIC_READ);
-	m_pDXResourceUtilities->Create_Buffer(d3d, bufferInfo, &dxr.sbt);
-
-	// Map the buffer
-	uint8_t* pData;
-	HRESULT hr = dxr.sbt->Map(0, nullptr, (void**)&pData);
-	Utils::Validate(hr, L"Error: failed to map shader table!");
-
-	// Ray Generation program and local root argument data (descriptor table with constant buffer and IB/VB pointers)
-	memcpy(pData, dxr.rtpsoInfo->GetShaderIdentifier(L"RayGen_12"), shaderIdSize);
-
-	// Set the root arguments data. Point to start of descriptor heap
-	*reinterpret_cast<D3D12_GPU_DESCRIPTOR_HANDLE*>(pData + shaderIdSize) = resources.cbvSrvUavHeap->GetGPUDescriptorHandleForHeapStart();
-
-	// Miss program 0.  This is Miss Program for Primary Ray.
-	pData += dxr.sbtEntrySize;
-	memcpy(pData, dxr.rtpsoInfo->GetShaderIdentifier(L"Miss_5"), shaderIdSize);
-
-	// Set the local signature's arg data (ie miss shader's arg). The data is the 6th descriptor in descriptor heap. 
-	// This is since the cube map texture is the 6th descriptor in the descriptor heap.  The descriptor holds
-	// the srv for the cube texture.
-
-	//Miss Program 0 data.  
-	D3D12_GPU_DESCRIPTOR_HANDLE handle = resources.cbvSrvUavHeap->GetGPUDescriptorHandleForHeapStart();
-	UINT handleIncrement = d3d.device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-	handle.ptr += handleIncrement * 6; //get handle to the 6th descriptor ie the cubemap
-	*reinterpret_cast<D3D12_GPU_DESCRIPTOR_HANDLE*>(pData + shaderIdSize) = handle; //set handle to the descriptor
-
-	//  2nd Miss program ie MissShadow (no data, uses empty signature).  This is Miss Program for Shadow Ray.
-	pData += dxr.sbtEntrySize;
-	memcpy(pData, dxr.rtpsoInfo->GetShaderIdentifier(L"MissShadow_5"), shaderIdSize);
-
-
-
-	// ---- -----------------------------Begin HitGroups -------------------
-	// 
-	// Each Model Instance has a Chs for ray 0 table entry and a Chs for ray 1 table entry
-	// The first is for main color and the second is for the shadow hit ray
-	
-	// ---------------------------- Instance 0 ---------------------------------------------
-	// 
-	// Closest Hit program 0 and local root argument data (descriptor table)
-	pData += dxr.sbtEntrySize;
-	memcpy(pData, dxr.rtpsoInfo->GetShaderIdentifier(L"HitGroup"), shaderIdSize);
-
-	// Set the root arg data. Point to start of descriptor heap
-	*reinterpret_cast<D3D12_GPU_DESCRIPTOR_HANDLE*>(pData + shaderIdSize) = resources.cbvSrvUavHeap->GetGPUDescriptorHandleForHeapStart();
-
-	// Closest Hit program 1 ie shadow hit
-	pData += dxr.sbtEntrySize;
-	memcpy(pData, dxr.rtpsoInfo->GetShaderIdentifier(L"HitGroup2"), shaderIdSize);
-
-	// ---------------------------- Instance 1---------------------------------------------
-	
-	// Closest Hit program 2 and local root argument data (descriptor table )
-	pData += dxr.sbtEntrySize;
-	memcpy(pData, dxr.rtpsoInfo->GetShaderIdentifier(L"HitGroup3"), shaderIdSize);
-
-	// Set the root arg data. Point to start of descriptor heap
-	*reinterpret_cast<D3D12_GPU_DESCRIPTOR_HANDLE*>(pData + shaderIdSize) = resources.cbvSrvUavHeap->GetGPUDescriptorHandleForHeapStart();
-
-	// Closest Hit program 1 ie shadow hit
-	pData += dxr.sbtEntrySize;
-	memcpy(pData, dxr.rtpsoInfo->GetShaderIdentifier(L"HitGroup2"), shaderIdSize);
-
-	// Unmap
-	dxr.sbt->Unmap(0, nullptr);
-}
-
 /**
  * Release DXR resources.
  */
