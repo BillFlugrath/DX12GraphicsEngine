@@ -1,11 +1,14 @@
-!!MUST PUT TWO DLLs IN SAME DIR AS APP EXE!!!
-The dxcompiler.dll and dxil.dll files get loaded by code at runtime. They must be in the
-directory where app exe is built and put by VS. Thus, these two dll files MUST be MANUALLY COPIED
+The DirectX Shader Compiler (dxcompiler.dll) and DirectX Intermediate Language validator (dxil.dll)
+must be in the same directory as the executable!
+
+The dxcompiler.dll and dxil.dll files get loaded by application code at runtime. They must be in the
+directory where app exe is built and put by Visual Studio.  These two dll files MUST be copied
 from "./RequiredDlls/" to "./bin/x64/Debug/" and "./bin/x64/Release/"
 Where home dir is folder where the VS project resides.
+There is a Post-Build Event that performs the copy of the dlls into the correct location.
 
-2. Ensure DXIL libraries are present
-The DirectX Shader Compiler (dxcompiler.dll) and DirectX Intermediate Language validator (dxil.dll)
+Thus, if there is any issue when application starts and compiles the hlsl files, check that to ensure DXIL libraries
+are present.  The DirectX Shader Compiler (dxcompiler.dll) and DirectX Intermediate Language validator (dxil.dll)
 must be in the same directory as the executable!!!
 This is especially important for development builds where signing happens at runtime. 
 
