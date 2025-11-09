@@ -116,9 +116,7 @@ void  DXResourceBindingUtilities::CreateVertexAndIndexBufferSRVs(D3D12Global& d3
 	cbvDesc.SizeInBytes = ALIGN(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT, sizeof(SceneShaderData));
 	cbvDesc.BufferLocation = m_pSceneShaderDataCB->GetGPUVirtualAddress();
 
-
-	if (_DEBUG)
-		m_pSceneShaderDataCB->SetName(L"m_pSceneShaderDataCB");
+	m_pSceneShaderDataCB->SetName(L"m_pSceneShaderDataCB");
 
 	//create the descriptor in the heap location "handle".  dont confuse handle (ie location of descriptor) with actual data of the buffer
 	//stored at "cbvDesc.BufferLocation".  The constant buffer view is for the SceneShaderData CB
@@ -128,9 +126,7 @@ void  DXResourceBindingUtilities::CreateVertexAndIndexBufferSRVs(D3D12Global& d3
 	cbvDesc.SizeInBytes = ALIGN(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT, sizeof(SceneTextureShaderData));
 	cbvDesc.BufferLocation = m_pSceneTextureShaderDataCB->GetGPUVirtualAddress();
 	
-
-	if (_DEBUG)
-		m_pSceneTextureShaderDataCB->SetName(L"m_pSceneTextureShaderDataCB");
+	m_pSceneTextureShaderDataCB->SetName(L"m_pSceneTextureShaderDataCB");
 
 	handle.ptr += handleIncrement;
 	d3d.device->CreateConstantBufferView(&cbvDesc, handle);

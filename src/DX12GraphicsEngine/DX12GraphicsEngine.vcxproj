@@ -93,8 +93,10 @@
       <EntryPointName />
     </FxCompile>
     <PostBuildEvent>
-      <Command>
-      </Command>
+      <Command>xcopy /y  .\RequiredDlls\dxcompiler.dll  .\bin\x64\Debug\dxcompiler.dll
+xcopy /y  .\RequiredDlls\dxil.dll  .\bin\x64\Debug\dxil.dll
+xcopy /y  .\RequiredDlls\dxcompiler.dll  .\bin\x64\Releasedxcompiler.dll
+xcopy /y  .\RequiredDlls\dxil.dll  .\bin\x64\Release\dxil.dll</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -148,8 +150,10 @@
       <EntryPointName />
     </FxCompile>
     <PostBuildEvent>
-      <Command>
-      </Command>
+      <Command>xcopy /y  .\RequiredDlls\dxcompiler.dll  .\bin\x64\Debug\dxcompiler.dll
+xcopy /y  .\RequiredDlls\dxil.dll  .\bin\x64\Debug\dxil.dll
+xcopy /y  .\RequiredDlls\dxcompiler.dll  .\bin\x64\Releasedxcompiler.dll
+xcopy /y  .\RequiredDlls\dxil.dll  .\bin\x64\Release\dxil.dll</Command>
       <Message>
       </Message>
     </PostBuildEvent>
