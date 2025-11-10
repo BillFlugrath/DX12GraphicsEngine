@@ -64,10 +64,7 @@ RWTexture2D<float4> RTOutput				: register(u0);
 RaytracingAccelerationStructure SceneBVH	: register(t0);
 
 
-//Texture2D<float4> albedo					: register(t1);
-//Texture2D<float4> albedo_2					: register(t2);
-
-TextureCube cubeMap_0						: register(t3);
+TextureCube cubeMap_0						: register(t1);
 
 SamplerState      g_SamplerState : register(s0);
 
