@@ -137,7 +137,7 @@ float4 PSMain( PS_INPUT i ) : SV_TARGET
 
 	//return rayColor;
 
-	return float4(vColor.rgb,1.0) * rayColor; //modulate by inline ray color
+	vColor.rgb= float4(vColor.rgb,1.0) * rayColor; //modulate by inline ray color
 
 	return vColor * dp_vec + float4(0.1, 0.1, 0.1, 1);;
 
