@@ -196,48 +196,58 @@ void DX12Raytracing_Inline_1::OnInit()
 	//load texture for textured quad (not used since we called CreateRenderTargetTexture)
 	//m_pTexturedQuadRTT->CreateTextureFromFile(kTestPNGFile, 256, 256, texture_descriptor_index);
 
+	LoadMainSceneModelsAndTextures(quad_viewport, quad_scissor);
 
+
+	m_DXCamera = new DXCamera();
+	m_DXCamera->SetAspectRatio( (float)mTexturedQuadRTTWidth / (float)mTexturedQuadRTTHeight);
+
+	InitThreads();
+
+	//init the compute shader
+	InitializeComputeShader();
+
+	//DXR
+	InitRayTracing();
+}
+
+void DX12Raytracing_Inline_1::LoadMainSceneModelsAndTextures(const CD3DX12_VIEWPORT& quad_viewport, const CD3DX12_RECT& quad_scissor)
+{
 	//create model 1
-	DXModel *pModel = new DXModel();
+	DXModel* pModel = new DXModel();
 
-	int cb_descriptor_index = descriptor_heap_srv_->GetNewDescriptorIndex(); //index into descriptor heap cb_descriptor_index for the constant buffer of model
-	//set a scissor and viewport that matches the size of the quad RTT we are rendering the model into
-	pModel->Init(m_device, m_commandQueue, descriptor_heap_srv_->GetDescriptorHeap(),
-		cb_descriptor_index, quad_viewport, quad_scissor);
+	pModel->LoadModelAndTexture(kTestObjModelFilename, kTestPNGFile_2,
+		m_device, m_commandQueue, descriptor_heap_srv_, quad_viewport, quad_scissor);
+
 	
-	pModel->LoadModel(kTestObjModelFilename); //load the file
-
-	texture_descriptor_index = descriptor_heap_srv_->GetNewDescriptorIndex();
-	pModel->LoadTexture(kTestPNGFile_2, texture_descriptor_index, m_device, m_commandQueue);
-
 	m_DXModelScene.push_back(pModel);
 
 	//create model 2
 	DXModel* pModel2 = new DXModel();
 
-	cb_descriptor_index = descriptor_heap_srv_->GetNewDescriptorIndex(); //index into descriptor heap cb_descriptor_index for the constant buffer of model
-	pModel2->Init(m_device, m_commandQueue, descriptor_heap_srv_->GetDescriptorHeap(),
-		cb_descriptor_index, quad_viewport, quad_scissor);
-
-	pModel2->LoadModel("./assets/models/plane300x300_b.obj"); //load the file
-
-	texture_descriptor_index = descriptor_heap_srv_->GetNewDescriptorIndex();
-	const std::wstring kTestPngFile_3 = L"C:./assets/textures/floorTile.png";
-	pModel2->LoadTexture(kTestPngFile_3, texture_descriptor_index, m_device, m_commandQueue);
+	pModel2->LoadModelAndTexture("./assets/models/plane300x300_b.obj", L"C:./assets/textures/floorTile.png",
+		m_device, m_commandQueue, descriptor_heap_srv_, quad_viewport, quad_scissor);
 
 	m_DXModelScene.push_back(pModel2);
+
+	//Set Position of scene models
+	XMMATRIX world0 = XMMatrixTranslation(2.0f, 0, 2.0f);
+	XMMATRIX world1 = XMMatrixTranslation(-100.0f, -2.0, -100.0f);
+
+	pModel->SetWorldMatrix(world0);
+	pModel2->SetWorldMatrix(world1);
 
 
 	//Create model (point cloud) and load data from file
 	m_pDXPointCloudModel = new DXModel();
-	
+
 	//Set debug flags before creating the point cloud d3d resources
 	DXPointCloud::SetDebugVizDepthBuffer(mDebugVizDepthBuffer);
 
 	int cb_descriptor_index_2 = descriptor_heap_srv_->GetNewDescriptorIndex(); //index into descriptor heap cb_descriptor_index for the constant buffer of model
-	
+
 	//set a scissor and viewport that matches the size of the quad RTT we are rendering the model into
-	m_pDXPointCloudModel->Init(m_device, m_commandQueue, descriptor_heap_srv_->GetDescriptorHeap(), 
+	m_pDXPointCloudModel->Init(m_device, m_commandQueue, descriptor_heap_srv_->GetDescriptorHeap(),
 		cb_descriptor_index_2, quad_viewport, quad_scissor);
 
 	if (mDebugUseiPhonePointCloud)
@@ -255,26 +265,14 @@ void DX12Raytracing_Inline_1::OnInit()
 			m_pDXPointCloudModel->LoadPointCloud(kzPlanePointCloudFile, bFlipAxes);
 	}
 
-	
+
 	//std::shared_ptr<DXPointCloud>& pPointCloudMesh = m_pDXPointCloudModel->GetPointCloudMesh();
 	//pPointCloudMesh->SetUseCPUPointSort(true);
-	
+
 	//TODO remove this since point cloud does not require a texture like a model does
-	texture_descriptor_index = descriptor_heap_srv_->GetNewDescriptorIndex();
+	uint32_t texture_descriptor_index = descriptor_heap_srv_->GetNewDescriptorIndex();
 	m_pDXPointCloudModel->LoadTexture(kTestPNGFile_2, texture_descriptor_index, m_device, m_commandQueue);
-
-	m_DXCamera = new DXCamera();
-	m_DXCamera->SetAspectRatio( (float)mTexturedQuadRTTWidth / (float)mTexturedQuadRTTHeight);
-
-	InitThreads();
-
-	//init the compute shader
-	InitializeComputeShader();
-
-	//DXR
-	InitRayTracing();
 }
-
 
 // Load the rendering pipeline dependencies.
 void DX12Raytracing_Inline_1::LoadPipeline()
@@ -990,7 +988,6 @@ void DX12Raytracing_Inline_1::RenderScene()
 	XMMATRIX view = m_DXCamera->GetViewMatrix();
 	XMMATRIX proj = m_DXCamera->GetProjectionMatrix();
 	XMMATRIX world0 = XMMatrixTranslation(2.0f, 0, 2.0f);
-	XMMATRIX world1 = XMMatrixTranslation(-100.0f, -2.0, -100.0f);
 
 	float clear_color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	m_sceneCommandList->ClearRenderTargetView(mhTexturedQuadRtv, clear_color, 0, nullptr);
@@ -998,13 +995,9 @@ void DX12Raytracing_Inline_1::RenderScene()
 
 	m_sceneCommandList->OMSetRenderTargets(1, &mhTexturedQuadRtv, true, &DepthStencilView());
 
-	//Render 3D model
-	if (mDebugRender3dModel)
+	//Render 3D models
+	if (mDebugRender3dModels)
 	{
-		//TODO set world matrix when created
-		m_DXModelScene[0]->SetWorldMatrix(world0);
-		m_DXModelScene[1]->SetWorldMatrix(world1);
-
 		DXGraphicsUtilities::SrvParameter param0{ m_BVHGPUHandle,2 };
 		DXGraphicsUtilities::SrvParameter param1{ m_CubemapGPUHandle, 3};
 		std::vector< DXGraphicsUtilities::SrvParameter> vParams{ param0, param1 };
@@ -1013,7 +1006,6 @@ void DX12Raytracing_Inline_1::RenderScene()
 		{
 			pModel->Render(m_sceneCommandList, view, proj, vParams); //render into RTT contained in quad class
 		}
-		
 	}
 
 	//Render point cloud
@@ -1350,7 +1342,6 @@ void DX12Raytracing_Inline_1::InitRayTracing()
 
 void DX12Raytracing_Inline_1::CreateRayTracingScene()
 {
-
 	//Create the Scene by adding models to a vector.  Each model will become a TLAS instance
 	int numModels = 4;
 	for (int i = 0; i < numModels; ++i)
@@ -1374,6 +1365,7 @@ void DX12Raytracing_Inline_1::CreateRayTracingScene()
 	vModelObjects[3].SetInstanceContributionToHitGroupIndex(0);  //teapot
 
 	//Create D3DTexture objects
+	/*
 	D3DTexture tex0, tex1, tex2, tex3, tex4;
 	tex0.m_pTextureResource = m_vTextureObjects[0]->GetDX12Resource();
 	tex1.m_pTextureResource = m_vTextureObjects[1]->GetDX12Resource();
@@ -1395,6 +1387,7 @@ void DX12Raytracing_Inline_1::CreateRayTracingScene()
 	int width = 0, height = 0, width1 = 0, height1 = 0;
 	m_vTextureObjects[0]->GetWidthAndHeight(width, height);
 	m_vTextureObjects[1]->GetWidthAndHeight(width1, height1);
+	*/
 
 	//create D3DMeshes with vb amd ib
 	D3DMesh mesh0, mesh1, mesh2, mesh3, mesh4;
@@ -1418,6 +1411,7 @@ void DX12Raytracing_Inline_1::CreateRayTracingScene()
 
 	// SetTexture2DIndex sets the same index for all meshes in model.  This sets the diffuse (albedo) texture for the
 	//mesh objects by setting a numeric index that is used in an unbound array of texture2D objects.
+	/*
 	vModelObjects[0].SetTexture2DIndex(0);
 	vModelObjects[1].SetTexture2DIndex(1);
 	vModelObjects[2].SetTexture2DIndex(3);
@@ -1425,6 +1419,7 @@ void DX12Raytracing_Inline_1::CreateRayTracingScene()
 
 	// SetTexture2DIndexForMesh allows for setting the texture for a specific mesh in the model
 	vModelObjects[0].SetTexture2DIndexForMesh(0, 1); //set mesh0 texture1
+	*/
 
 	//Create BLAS and TLAS
 	m_pDXRManager->CreateTopAndBottomLevelAS(*m_pD3DSceneModels);

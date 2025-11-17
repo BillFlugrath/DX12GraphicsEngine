@@ -135,6 +135,7 @@ private:
 	void CreatePostPipelineState();
 	void CreateRTViewsForSwapChain();
 	void CreateIntermediateRttResources();
+	void LoadMainSceneModelsAndTextures(const CD3DX12_VIEWPORT& quad_viewport, const CD3DX12_RECT& quad_scissor);
 	void WaitForGpu();
 	void MoveToNextFrame();
 	void UpdateSceneViewportAndScissor();
@@ -220,7 +221,7 @@ private:
 	//Debug members
 	void DebugTests();
 	bool mDebugEnableDebugTests = false;  //Calls a debug function used for temporary testing only.
-	bool mDebugRender3dModel = true; //render a single 3d model
+	bool mDebugRender3dModels = true; //render 3d models with rasterizer
 	bool mDebugRenderPointCloud = true; //render a point cloud
 
 	bool mDebugVizDepthBuffer = false; //show depth buffer of 3d scene previously rendered

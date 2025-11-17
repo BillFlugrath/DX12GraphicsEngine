@@ -151,7 +151,7 @@ void D3D12PointCloudApp_4::OnInit()
 	//Create Constant Buffer and CBV for eading in pixel shader. 
 	CreateConstantBuffer();
 
-	CD3DX12_VIEWPORT quad_viewport(0.0f, 0.0f, mTexturedQuadRTTWidth, mTexturedQuadRTTHeight, 0, 1.0);
+	CD3DX12_VIEWPORT quad_viewport(0.0f, 0.0f, (float)mTexturedQuadRTTWidth, (float)mTexturedQuadRTTHeight, 0, 1.0);
 	CD3DX12_RECT quad_scissor;
 
 	quad_scissor.left = 0;
@@ -230,7 +230,7 @@ void D3D12PointCloudApp_4::OnInit()
 	m_pDXPointCloudModel->LoadTexture(kTestPNGFile_2, texture_descriptor_index, m_device, m_commandQueue);
 
 	m_DXCamera = new DXCamera();
-	m_DXCamera->SetAspectRatio(mTexturedQuadRTTWidth / mTexturedQuadRTTHeight);
+	m_DXCamera->SetAspectRatio((float)mTexturedQuadRTTWidth / (float)mTexturedQuadRTTHeight);
 
 	InitThreads();
 
@@ -807,8 +807,8 @@ void D3D12PointCloudApp_4::UpdatePostViewportAndScissor()
 {
 	m_postViewport.TopLeftX = 0 ;
 	m_postViewport.TopLeftY = 0;
-	m_postViewport.Width = m_width;
-	m_postViewport.Height = m_height;
+	m_postViewport.Width = (float)m_width;
+	m_postViewport.Height = (float)m_height;
 
 	m_postScissorRect.left = static_cast<LONG>(m_postViewport.TopLeftX);
 	m_postScissorRect.right = static_cast<LONG>(m_postViewport.TopLeftX + m_postViewport.Width);
@@ -1225,7 +1225,7 @@ void D3D12PointCloudApp_4::DebugTests()
 	//Define start position in view space ie camera space position
 	float x = 1.0f;
 	float y = 0.0f;
-	float z = near_plane + 5.01;
+	float z = near_plane + 5.01f;
 
 	XMVECTOR pos = XMVectorSet(x,y, z, 1);//DO NOT SET Z=0 since it cant occur in camera space!!!
 	XMVECTOR projPos = XMVector4Transform(pos, proj);  //multiply by proj matrix (not yet divided by w)!!

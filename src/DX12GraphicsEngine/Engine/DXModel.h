@@ -1,7 +1,7 @@
 #pragma once
 
 #include "DXGraphicsUtilities.h"
-
+#include <string>
 using namespace DirectX;
 
 using Microsoft::WRL::ComPtr;
@@ -10,6 +10,7 @@ class DXTexture;
 class DXMesh;
 class DXPointCloud;
 class DXCamera;
+class DXDescriptorHeap;
 
 class DXModel
 {
@@ -30,6 +31,11 @@ public:
 		 int cbDescriptorIndex,
 		 CD3DX12_VIEWPORT Viewport,
 		 CD3DX12_RECT ScissorRect );
+
+	 void LoadModelAndTexture(const std::string& modelFileName, const std::wstring& strTextureFullPath,
+		 ComPtr<ID3D12Device>& pd3dDevice, ComPtr<ID3D12CommandQueue>& commandQueue,
+		 std::shared_ptr<DXDescriptorHeap> &descriptor_heap_srv, const CD3DX12_VIEWPORT& Viewport,
+		 const CD3DX12_RECT &ScissorRect);
 
 	void LoadModel(const std::string & fileName); // filename is the entire path
 	void LoadPointCloud(const std::string& fileName, bool bSwitchYZAxes); // filename is the entire path

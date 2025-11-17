@@ -3,7 +3,7 @@
 #include "DXPointCloud.h"
 #include "DXMesh.h"
 #include "DXTexture.h"
-
+#include "DXDescriptorHeap.h"
 
 #include "./DXR/DXShaderUtilities.h"
 #include "./DXR/DXD3DUtilities.h"
@@ -42,7 +42,7 @@ void  DXModel::Init(ComPtr<ID3D12Device>& pd3dDevice, ComPtr<ID3D12CommandQueue>
 {
 	m_pd3dDevice = pd3dDevice;
 	
-	m_cbvSrvHeap = pCBVSRVHeap; //we are overriding this by creating our own.  ???
+	m_cbvSrvHeap = pCBVSRVHeap; 
 	m_cbDescriptorIndex = cbDescriptorIndex;
 
 	m_Viewport = Viewport;
@@ -573,6 +573,28 @@ void  DXModel::Update(DXCamera* pCamera)
 	{
 		m_pDXPointCloud->Update(pCamera);
 	}
+}
+
+void DXModel::LoadModelAndTexture(const std::string& modelFileName, const std::wstring& strTextureFullPath,
+	ComPtr<ID3D12Device>& pd3dDevice, ComPtr<ID3D12CommandQueue>& pCommandQueue,
+	std::shared_ptr<DXDescriptorHeap> &descriptor_heap_srv, const CD3DX12_VIEWPORT& Viewport,
+	const CD3DX12_RECT &ScissorRect)
+{
+
+	m_pd3dDevice = pd3dDevice;
+
+	m_cbvSrvHeap = descriptor_heap_srv->GetDescriptorHeap(); 
+	m_cbDescriptorIndex = descriptor_heap_srv->GetNewDescriptorIndex();
+
+	m_Viewport = Viewport;
+	m_ScissorRect = ScissorRect;
+
+	CreateD3DResources(pCommandQueue);
+
+	LoadModel(modelFileName);
+
+	uint32_t texture_descriptor_index = descriptor_heap_srv->GetNewDescriptorIndex();
+	LoadTexture(strTextureFullPath, texture_descriptor_index, pd3dDevice, pCommandQueue);
 }
 
 void  DXModel::LoadModel(const std::string & fileName)
