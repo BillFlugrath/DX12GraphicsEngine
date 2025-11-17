@@ -269,7 +269,7 @@ void D3D12PointCloudApp_4::LoadPipeline()
 
         ThrowIfFailed(D3D12CreateDevice(
             warpAdapter.Get(),
-            D3D_FEATURE_LEVEL_11_0,
+			D3D_FEATURE_LEVEL_12_1,
             IID_PPV_ARGS(&m_device)
             ));
     }
@@ -280,7 +280,7 @@ void D3D12PointCloudApp_4::LoadPipeline()
 
         ThrowIfFailed(D3D12CreateDevice(
             hardwareAdapter.Get(),
-            D3D_FEATURE_LEVEL_11_0,
+			D3D_FEATURE_LEVEL_12_1,
             IID_PPV_ARGS(&m_device)
             ));
     }

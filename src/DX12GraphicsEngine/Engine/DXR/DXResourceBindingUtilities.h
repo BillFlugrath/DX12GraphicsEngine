@@ -20,6 +20,9 @@ public:
 	DXResourceBindingUtilities();
 	~DXResourceBindingUtilities();
 
+	//Create Constant Buffers for the Unbound Resources.  One CB is an array of IB/VB pairs created from d3dSceneModels.
+	// The IB/VB pairs stored in a ByteAddressBuffer array.
+	//The other CB is an array of Texture2D objects created from textures2D.  Stored in a Texture2D array.
 	HRESULT CreateConstantBufferResources(D3D12Global& d3d, D3DSceneModels& d3dSceneModels, D3DSceneTextures& textures2D);
 
 	void CalculateShaderData(D3DSceneModels& d3dSceneModels, D3DSceneTextures& textures2D);

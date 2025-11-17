@@ -268,7 +268,7 @@ void DXResourceBindingUtilities::Create_CBVSRVUAV_Heap(D3D12Global& d3d, DXRGlob
 	handle.ptr += handleIncrement;
 	d3d.device->CreateShaderResourceView(nullptr, &srvDesc, handle);
 
-	// Create the material texture SRV : register(t3);
+	// Create the material texture SRV NOT USED
 	D3D12_SHADER_RESOURCE_VIEW_DESC textureSRVDesc = {};
 	textureSRVDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	textureSRVDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
@@ -280,7 +280,7 @@ void DXResourceBindingUtilities::Create_CBVSRVUAV_Heap(D3D12Global& d3d, DXRGlob
 	d3d.device->CreateShaderResourceView(textures[0].m_pTextureResource.Get(), &textureSRVDesc, handle);
 
 
-	// Create the material texture_1 SRV : register(t6);
+	// Create the material texture_1 SRV NOT USED
 	D3D12_SHADER_RESOURCE_VIEW_DESC textureSRVDesc2 = {};
 	textureSRVDesc2.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	textureSRVDesc2.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
@@ -291,7 +291,7 @@ void DXResourceBindingUtilities::Create_CBVSRVUAV_Heap(D3D12Global& d3d, DXRGlob
 	handle.ptr += handleIncrement;
 	d3d.device->CreateShaderResourceView(textures[1].m_pTextureResource.Get(), &textureSRVDesc2, handle);
 
-	// Create the cube map 0 texture SRV : register(t7);
+	// Create the cube map 0 texture SRV : register(t0);
 	D3D12_SHADER_RESOURCE_VIEW_DESC textureSRVDesc3 = {};
 	textureSRVDesc3.Format = textures[2].m_pTextureResource.Get()->GetDesc().Format;
 	textureSRVDesc3.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;

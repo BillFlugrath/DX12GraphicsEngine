@@ -499,3 +499,41 @@ void DXMesh::Render(ComPtr<ID3D12GraphicsCommandList> & pCommandList, const XMMA
 	pCommandList->IASetIndexBuffer(&m_indexBufferView);
 	pCommandList->DrawIndexedInstanced((UINT)m_unVertexCount, 1, 0, 0, 0);
 }
+
+void DXMesh::Render(ComPtr<ID3D12GraphicsCommandList>& pCommandList, const XMMATRIX& matWorld, const XMMATRIX& matMVP)
+{
+	UINT nCBVSRVDescriptorSize = mpd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);;
+
+	//copy mvp matrix data into the constant buffer
+	DirectX::XMFLOAT4X4 mvp4x4;
+	XMStoreFloat4x4(&mvp4x4, XMMatrixTranspose(matMVP));
+
+	DirectX::XMFLOAT4X4 world4x4;
+	XMStoreFloat4x4(&world4x4, XMMatrixTranspose(matWorld));
+
+	struct ObjectConstantBufferInShader
+	{
+		DirectX::XMFLOAT4X4 mvp4x4;
+		DirectX::XMFLOAT4X4 world4x4;
+	};
+
+	ObjectConstantBufferInShader cb{ mvp4x4, world4x4 };
+
+	memcpy(m_pConstantBufferData, &cb, sizeof(ObjectConstantBufferInShader));
+
+
+	// Bind the CB
+	int nStartOffset = 0;
+	CD3DX12_GPU_DESCRIPTOR_HANDLE cbvHandle(m_pCBVSRVHeap->GetGPUDescriptorHandleForHeapStart());
+	cbvHandle.Offset(nStartOffset + m_cbDescriptorIndex, nCBVSRVDescriptorSize);
+
+	//cb descriptor is second parameter of the root
+	int cb_root_parameter = 1;
+	pCommandList->SetGraphicsRootDescriptorTable(cb_root_parameter, cbvHandle);
+
+	// Bind the VB/IB and draw
+	pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	pCommandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
+	pCommandList->IASetIndexBuffer(&m_indexBufferView);
+	pCommandList->DrawIndexedInstanced((UINT)m_unVertexCount, 1, 0, 0, 0);
+}

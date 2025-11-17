@@ -70,4 +70,10 @@ namespace DXGraphicsUtilities
 		XMFLOAT4 gCameraProperties; //{ near, far, rtt width, rtt height}
 	};
 
+	struct SrvParameter
+	{
+		CD3DX12_GPU_DESCRIPTOR_HANDLE mHandle;
+		uint32_t mRootParamIndex;
+	};
+
 }

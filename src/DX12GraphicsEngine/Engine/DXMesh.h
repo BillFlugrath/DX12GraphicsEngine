@@ -20,6 +20,7 @@ public:
 
   
 	void Render(ComPtr<ID3D12GraphicsCommandList> & pCommandList, const XMMATRIX &matMVP);
+	void Render(ComPtr<ID3D12GraphicsCommandList>& pCommandList, const XMMATRIX& matWorld, const XMMATRIX& matMVP);
 
 	HRESULT LoadModelFromFile(const char *          filename,
 		ID3D12Device* pd3dDevice);

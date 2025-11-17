@@ -172,6 +172,7 @@ xcopy /y  ".\RequiredDlls\dxil.dll"  ".\bin\x64\Release\dxil.dll"</Command>
   <ItemGroup>
     <ClInclude Include="D3D12PointCloudApp_4.h" />
     <ClInclude Include="DX12Raytracing_2.h" />
+    <ClInclude Include="DX12Raytracing_Inline_1.h" />
     <ClInclude Include="Engine\d3dUtil.h" />
     <ClInclude Include="Engine\DDSTextureLoader.h" />
     <ClInclude Include="Engine\DXCamera.h" />
@@ -223,6 +224,7 @@ xcopy /y  ".\RequiredDlls\dxil.dll"  ".\bin\x64\Release\dxil.dll"</Command>
   <ItemGroup>
     <ClCompile Include="D3D12PointCloudApp_4.cpp" />
     <ClCompile Include="DX12Raytracing_2.cpp" />
+    <ClCompile Include="DX12Raytracing_Inline_1.cpp" />
     <ClCompile Include="Engine\d3dUtil.cpp" />
     <ClCompile Include="Engine\DDSTextureLoader.cpp" />
     <ClCompile Include="Engine\DXCamera.cpp" />

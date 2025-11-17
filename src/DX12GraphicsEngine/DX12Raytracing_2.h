@@ -52,13 +52,10 @@ public:
 	std::shared_ptr<DXTexture> m_pDDSCubeMap_0;
 
 
-	//DXDescriptorHeap* descriptor_heap_srv_;
-
 	// DirectX Raytracing (DXR) attributes
 	ID3D12Device5 *m_dxrDevice;
 	ID3D12GraphicsCommandList4 *m_dxrCommandList;
 	ID3D12CommandQueue* m_CmdQueue;
-
 
 	std::shared_ptr< DXRManager > m_pDXRManager;
 

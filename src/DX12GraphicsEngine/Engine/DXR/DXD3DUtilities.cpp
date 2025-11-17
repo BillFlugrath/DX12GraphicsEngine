@@ -277,6 +277,9 @@ void DXD3DUtilities::Present(D3D12Global& d3d)
 */
 void DXD3DUtilities::WaitForGPU(D3D12Global& d3d)
 {
+	if (d3d.device == nullptr)
+		return;
+
 	// Schedule a signal command in the queue
 	HRESULT hr = d3d.cmdQueue->Signal(d3d.fence, d3d.fenceValues[d3d.frameIndex]);
 	Utils::Validate(hr, L"Error: failed to signal fence!");

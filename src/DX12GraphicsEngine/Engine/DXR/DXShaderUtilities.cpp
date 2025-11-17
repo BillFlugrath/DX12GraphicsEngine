@@ -42,7 +42,7 @@ void DXShaderUtilities::Compile_Shader(D3D12ShaderCompilerInfo& compilerInfo, D3
 
 	// Compile the shader
 	IDxcOperationResult* result;
-	hr = compilerInfo.compiler->Compile(pShaderText, info.filename, L"", info.targetProfile, nullptr, 0, nullptr, 0, dxcIncludeHandler, &result);
+	hr = compilerInfo.compiler->Compile(pShaderText, info.filename, info.entryPoint, info.targetProfile, nullptr, 0, nullptr, 0, dxcIncludeHandler, &result);
 	Utils::Validate(hr, L"Error: failed to compile shader!");
 
 	// Verify the result

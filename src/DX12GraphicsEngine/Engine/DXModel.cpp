@@ -3,10 +3,15 @@
 #include "DXPointCloud.h"
 #include "DXMesh.h"
 #include "DXTexture.h"
-#include "DXGraphicsUtilities.h"
+
+
+#include "./DXR/DXShaderUtilities.h"
+#include "./DXR/DXD3DUtilities.h"
+#include "./DXR/DXRManager.h"
 
 bool DXModel::msbDebugUseSpritePointCloud = true;
 bool DXModel::msbDebugUseDiskSprites = false;
+bool DXModel::msbUseInlineRayTracing = false;
 
 ComPtr<ID3D12PipelineState> DXModel::m_pPipelineState = nullptr;
 ComPtr<ID3D12PipelineState> DXModel::m_pPointCloudPipelineState = nullptr;
@@ -63,11 +68,30 @@ void DXModel::CreatePipelineState()
 #else
 		UINT compileFlags = 0;
 #endif
+		IDxcBlob* vsBlob=nullptr;
+		IDxcBlob* psBlob = nullptr;
+		D3D12ShaderCompilerInfo shaderCompiler;
+		DXShaderUtilities shaderUtils;
 
 		//load shader files from disk
-		ThrowIfFailed(D3DCompileFromFile(L"assets/shaders/objModelShaders.hlsl", nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, &objModelVertexShader, &error));
-		ThrowIfFailed(D3DCompileFromFile(L"assets/shaders/objModelShaders.hlsl", nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &objModelPixelShader, &error));
+		if (msbUseInlineRayTracing)
+		{
+			shaderUtils.Init_Shader_Compiler(shaderCompiler);
 
+			D3D12ShaderInfo infoVS(L"assets/shaders/objModelShadersRayTrace.hlsl", L"VSMain", L"vs_6_6");
+			shaderUtils.Compile_Shader(shaderCompiler, infoVS, &vsBlob);
+
+			D3D12ShaderInfo infoPS(L"assets/shaders/objModelShadersRayTrace.hlsl", L"PSMain", L"ps_6_6");
+			shaderUtils.Compile_Shader(shaderCompiler, infoPS, &psBlob);
+
+			//shaderUtils.Destroy(shaderCompiler);
+		}
+		else
+		{
+			ThrowIfFailed(D3DCompileFromFile(L"assets/shaders/objModelShaders.hlsl", nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, &objModelVertexShader, &error));
+			ThrowIfFailed(D3DCompileFromFile(L"assets/shaders/objModelShaders.hlsl", nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &objModelPixelShader, &error));
+		}
+		
 		// Define the vertex input layouts.
 		D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
 		{
@@ -81,8 +105,21 @@ void DXModel::CreatePipelineState()
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 		psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
 		psoDesc.pRootSignature = m_pRootSignature.Get();
-		psoDesc.VS = CD3DX12_SHADER_BYTECODE(objModelVertexShader.Get());
-		psoDesc.PS = CD3DX12_SHADER_BYTECODE(objModelPixelShader.Get());
+
+		if (msbUseInlineRayTracing)
+		{
+			psoDesc.VS.BytecodeLength = vsBlob->GetBufferSize();
+			psoDesc.VS.pShaderBytecode = vsBlob->GetBufferPointer();
+
+			psoDesc.PS.BytecodeLength = psBlob->GetBufferSize();
+			psoDesc.PS.pShaderBytecode = psBlob->GetBufferPointer();
+		}
+		else
+		{
+			psoDesc.VS = CD3DX12_SHADER_BYTECODE(objModelVertexShader.Get());
+			psoDesc.PS = CD3DX12_SHADER_BYTECODE(objModelPixelShader.Get());
+		}
+		
 		psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 		//psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
 		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
@@ -232,9 +269,9 @@ void DXModel::CreatePointCloudSpriteRootSignature()
 		// Create a sampler.
 		D3D12_STATIC_SAMPLER_DESC sampler = {};
 		sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-		sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-		sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-		sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+		sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 		sampler.MipLODBias = 0;
 		sampler.MaxAnisotropy = 0;
 		sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
@@ -280,13 +317,13 @@ void DXModel::CreateRootSignature()
 	}
 
 
-	// Create a root signature consisting of two descriptor tables
+	// Create a root signature consisting of  descriptor tables
 	{
 		////////
 		//CD3DX12_DESCRIPTOR_RANGE specifies the elements of the descriptor table.  for example CD3DX12_DESCRIPTOR_RANGE table[2] would
 		//have two elements.  in  example below, there is only 1 element in the table
-		CD3DX12_DESCRIPTOR_RANGE texTable;
-		texTable.Init(
+		CD3DX12_DESCRIPTOR_RANGE texTable0, texTable1, texTable2;
+		texTable0.Init(
 			D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
 			1,  // number of texture descriptors
 			0); // register t0
@@ -297,18 +334,32 @@ void DXModel::CreateRootSignature()
 		cbvTable.Init(
 			D3D12_DESCRIPTOR_RANGE_TYPE_CBV,
 			1,  // number of cb descriptors
-			0 // register bo
+			0 // register b0
 		);
 
+		texTable1.Init(
+			D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+			1,  // number of texture descriptors
+			1); // register t1  RaytracingAccelerationStructure
+
+		texTable2.Init(
+			D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+			1,  // number of texture descriptors
+			2); // t2 cubemap
 
 		//root signature parameters (consists of two tables).  later, before rendering, we need to call
 		//pCommandList->SetGraphicsRootDescriptorTable(0, texHandle);
 		//pCommandList->SetGraphicsRootDescriptorTable(1, cbvHandle);
+		//pCommandList->SetGraphicsRootDescriptorTable(2, scene BVH);
+		//pCommandList->SetGraphicsRootDescriptorTable(3, cubeTexHandle);
 		//This points the table directly to the heap memory where the descriptor handles reside
-		CD3DX12_ROOT_PARAMETER rootParameters[2];
-		rootParameters[0].InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL);
+
+		const uint32_t numParameters = 4;
+		CD3DX12_ROOT_PARAMETER rootParameters[numParameters];
+		rootParameters[0].InitAsDescriptorTable(1, &texTable0, D3D12_SHADER_VISIBILITY_PIXEL);
 		rootParameters[1].InitAsDescriptorTable(1, &cbvTable, D3D12_SHADER_VISIBILITY_VERTEX);
-		
+		rootParameters[2].InitAsDescriptorTable(1, &texTable1, D3D12_SHADER_VISIBILITY_ALL);
+		rootParameters[3].InitAsDescriptorTable(1, &texTable2, D3D12_SHADER_VISIBILITY_ALL);
 
 		// Allow input layout and pixel shader access and deny uneccessary access to certain pipeline stages.
 		D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
@@ -320,9 +371,9 @@ void DXModel::CreateRootSignature()
 		// Create a sampler.
 		D3D12_STATIC_SAMPLER_DESC sampler = {};
 		sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-		sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-		sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-		sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+		sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 		sampler.MipLODBias = 0;
 		sampler.MaxAnisotropy = 0;
 		sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
@@ -335,7 +386,7 @@ void DXModel::CreateRootSignature()
 
 	
 		// A root signature is an array of root parameters.
-		CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc(2, rootParameters,
+		CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc(numParameters, rootParameters,
 			1, &sampler,
 			D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
@@ -430,6 +481,35 @@ void DXModel::Render(ComPtr<ID3D12GraphicsCommandList> & pCommandList, const Dir
 	{
 		m_pDXMesh->Render(pCommandList, wvp);
 	}
+}
+
+void DXModel::Render(ComPtr<ID3D12GraphicsCommandList>& pCommandList, const DirectX::XMMATRIX& view, 
+	const DirectX::XMMATRIX& proj, std::vector<DXGraphicsUtilities::SrvParameter>& rootSrvParams)
+{
+	pCommandList->SetPipelineState(m_pPipelineState.Get());
+	pCommandList->SetGraphicsRootSignature(m_pRootSignature.Get());
+	
+	ID3D12DescriptorHeap* ppHeaps[] = { m_cbvSrvHeap.Get() };
+	pCommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+
+	//bind the texture view to the root parameter.  The root parameter has nothing to do with the shader register.
+	//For example, the shader register for the texture is t0, but the root parameter has nothing to do with that.
+	//the  root parameters are set when the signature is created and an array of all the  root parameters is used.
+	CD3DX12_GPU_DESCRIPTOR_HANDLE texHandle = m_DXTexture->GetSrvGPUDescriptorHandle(m_pd3dDevice);
+	int root_parameter = 0;
+	pCommandList->SetGraphicsRootDescriptorTable(root_parameter, texHandle);
+
+	for (auto param : rootSrvParams)
+	{
+		pCommandList->SetGraphicsRootDescriptorTable(param.mRootParamIndex, param.mHandle);
+	}
+
+
+	XMMATRIX wv = XMMatrixMultiply(m_WorldMatrix, view);
+	XMMATRIX wvp = XMMatrixMultiply(wv, proj);
+	XMMATRIX vp = XMMatrixMultiply(view, proj);
+
+	m_pDXMesh->Render(pCommandList, m_WorldMatrix, wvp);
 }
 
 void DXModel::RenderPointCloud(ComPtr<ID3D12GraphicsCommandList>& pCommandList,  const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& proj)

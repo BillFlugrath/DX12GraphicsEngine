@@ -46,7 +46,10 @@ public:
 	void Cleanup();
 
 	D3D12Global& GetD3DGlobal() { return d3d; }
+	std::shared_ptr< DXD3DUtilities >& GetDXD3DUtilities() { return m_pDXD3DUtilities; }
+	DXRGlobal& GetDXRGlobal() { return dxr; }
 
+	//Create Constant Buffers for the Unbound Resources ie CB of ByteAddressBuffer[] and CB of Texture2D[]
 	void InitializeUnboundResources(D3DSceneModels& d3dSceneModels, D3DSceneTextures& textures2D);
 
 protected:

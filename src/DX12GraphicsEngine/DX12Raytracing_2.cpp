@@ -63,9 +63,6 @@ void DX12Raytracing_2::OnInit()
 	m_dxrCommandList = d3d.cmdList;
 	m_CmdQueue = d3d.cmdQueue;
 
-	//descriptor_heap_srv_ = new DXDescriptorHeap();
-	//descriptor_heap_srv_->Initialize(static_cast<ComPtr<ID3D12Device>>(m_dxrDevice), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, kMaxNumOfCbSrvDescriptorsInHeap);
-
 	//load assets from disk and create D3D resources
 	LoadModelsAndTextures();
 
@@ -110,7 +107,6 @@ void DX12Raytracing_2::OnInit()
 
 
 	//get texture width and height.  Currently setting these into HLSL to do texture.Load.
-	//TODO just use texture samplers.  Remove the texture loads.
 	int width = 0, height = 0, width1 = 0, height1 = 0;
 	m_vTextureObjects[0]->GetWidthAndHeight(width, height);
 	m_vTextureObjects[1]->GetWidthAndHeight(width1, height1);
@@ -151,13 +147,15 @@ void DX12Raytracing_2::OnInit()
 	//Create signatures and load shaders
 	m_pDXRManager->CreateShadersAndRootSignatures(*m_pD3DSceneModels);
 	
-	
 	//create constant buffer D3D12 resources. The CBV (view descriptors) are made after in CreateCBVSRVUAVDescriptorHeap
 	m_pDXRManager->CreateConstantBufferResources((float)width); //Used for texture.LOAD.  TODO just use sampler.
 	
 	m_pDXRManager->CreateCBVSRVUAVDescriptorHeap(*m_pD3DSceneModels, vBoundTextures);  //Sets BOUND textures and bound models
 	
+	//Create Constant Buffers for the Unbound Resources ie CB of ByteAddressBuffer[] and CB of Texture2D[]
 	m_pDXRManager->InitializeUnboundResources(*m_pD3DSceneModels, *m_pD3DSceneTextures2D);
+
+	//Create the Srvs for the IBs and VBs in ByteAddressBuffer[] and Srvs for the Texture2d[]
 	m_pDXRManager->CreateVertexAndIndexBufferSRVs(*m_pD3DSceneModels, *m_pD3DSceneTextures2D);
 
 	m_pDXRManager->Create_PSO_and_ShaderTable();
@@ -176,7 +174,7 @@ void DX12Raytracing_2::LoadModelsAndTextures()
 	m_vMeshObjects[1]->LoadModelFromFile("./assets/models/unitTeapot.obj", static_cast<ID3D12Device*>(m_dxrDevice));
 	m_vMeshObjects[2]->LoadModelFromFile("./assets/models/unitsphere.obj", static_cast<ID3D12Device*>(m_dxrDevice));
 	m_vMeshObjects[3]->LoadModelFromFile("./assets/models/axes.obj", static_cast<ID3D12Device*>(m_dxrDevice));
-	m_vMeshObjects[4]->LoadModelFromFile("./assets/models/plane300x300.obj", static_cast<ID3D12Device*>(m_dxrDevice));
+	m_vMeshObjects[4]->LoadModelFromFile("./assets/models/plane300x300_b.obj", static_cast<ID3D12Device*>(m_dxrDevice));
 
 	//load 2d textures
 	for (int i = 0; i < 5; ++i)

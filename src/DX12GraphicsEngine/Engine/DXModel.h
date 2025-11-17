@@ -1,5 +1,7 @@
 #pragma once
 
+#include "DXGraphicsUtilities.h"
+
 using namespace DirectX;
 
 using Microsoft::WRL::ComPtr;
@@ -16,6 +18,9 @@ public:
 	~DXModel();
 
 	void Render(ComPtr<ID3D12GraphicsCommandList> & pCommandList, const DirectX::XMMATRIX & view, const DirectX::XMMATRIX & proj) ;
+	void Render(ComPtr<ID3D12GraphicsCommandList>& pCommandList, const DirectX::XMMATRIX& view,
+		const DirectX::XMMATRIX& proj, std::vector<DXGraphicsUtilities::SrvParameter>& rootParams);
+	
 	void RenderPointCloud(ComPtr<ID3D12GraphicsCommandList>& pCommandList, const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& proj);
 
 	void SetWorldMatrix(const XMMATRIX &world) {m_WorldMatrix = world;}
@@ -46,7 +51,10 @@ public:
 	std::shared_ptr<DXMesh> GetDXMesh() { return m_pDXMesh; }
 
 	//get pso
-	ComPtr<ID3D12PipelineState>& GetPipelineState() { return m_pPipelineState; }
+	static ComPtr<ID3D12PipelineState>& GetPipelineState() { return m_pPipelineState; }
+	static ComPtr<ID3D12RootSignature>& GetRootSignature() { return m_pRootSignature; }
+
+	static void SetInlineRayTracing(bool bEnableRT) { msbUseInlineRayTracing = bEnableRT; }
 
 protected:
 	void CreateD3DResources(ComPtr<ID3D12CommandQueue> & commandQueue);
@@ -83,4 +91,5 @@ protected:
 public:
 	static bool msbDebugUseSpritePointCloud;
 	static bool msbDebugUseDiskSprites;
+	static bool msbUseInlineRayTracing;
 };
