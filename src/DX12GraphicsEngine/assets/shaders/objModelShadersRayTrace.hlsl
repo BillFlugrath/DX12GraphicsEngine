@@ -1,5 +1,5 @@
 
-// Vertex Shader
+// Vertex Shader input
 struct VS_INPUT
 {
 	float3 vPosition : POSITION;
@@ -7,6 +7,7 @@ struct VS_INPUT
 	float2 vUVCoords: TEXCOORD0;
 };
 
+// Pixel Shader input
 struct PS_INPUT
 {
 	float4 vPosition : SV_POSITION;
@@ -51,9 +52,9 @@ float4 CastRay(float3 worldPos)
 	// Instantiate ray query object. Template parameter allows driver to generate a specialized implementation.
 	RayQuery<RAY_FLAG_CULL_NON_OPAQUE 
 		| RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES 
-		| RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH> q2;
+		| RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH> q;
 
-	RayQuery < RAY_FLAG_FORCE_OPAQUE > q;
+	//RayQuery < RAY_FLAG_FORCE_OPAQUE > q2;
 
 	// Create a shadow ray. The direction is hard-coded here, but can be fetched from a constant-buffer
 
@@ -83,6 +84,7 @@ float4 CastRay(float3 worldPos)
 	{
 		return float4(0, 1, 0, 1);
 	}
+
 	//q.Proceed();
 
 	// Examine and act on the result of the traversal. Was a hit committed?
@@ -135,7 +137,7 @@ float4 PSMain( PS_INPUT i ) : SV_TARGET
 
 	//return rayColor;
 
-	return float4(vColor.rgb,1.0) * rayColor;
+	return float4(vColor.rgb,1.0) * rayColor; //modulate by inline ray color
 
 	return vColor * dp_vec + float4(0.1, 0.1, 0.1, 1);;
 
