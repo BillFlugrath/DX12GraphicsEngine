@@ -213,30 +213,38 @@ void DX12Raytracing_Inline_1::OnInit()
 
 void DX12Raytracing_Inline_1::LoadMainSceneModelsAndTextures(const CD3DX12_VIEWPORT& quad_viewport, const CD3DX12_RECT& quad_scissor)
 {
+	//create model 0
+	DXModel* pModel0 = new DXModel();
+	pModel0->LoadModelAndTexture(kTestObjModelFilename, kTestPNGFile,
+		m_device, m_commandQueue, descriptor_heap_srv_, quad_viewport, quad_scissor);
+	m_DXModelScene.push_back(pModel0);
+
 	//create model 1
-	DXModel* pModel = new DXModel();
-
-	pModel->LoadModelAndTexture(kTestObjModelFilename, kTestPNGFile_2,
+	DXModel* pModel1 = new DXModel();
+	pModel1->LoadModelAndTexture("./assets/models/plane300x300_b.obj", L"C:./assets/textures/floorTile.png",
 		m_device, m_commandQueue, descriptor_heap_srv_, quad_viewport, quad_scissor);
+	m_DXModelScene.push_back(pModel1);
 
-	
-	m_DXModelScene.push_back(pModel);
-
-	//create model 2
 	DXModel* pModel2 = new DXModel();
-
-	pModel2->LoadModelAndTexture("./assets/models/plane300x300_b.obj", L"C:./assets/textures/floorTile.png",
+	pModel2->LoadModelAndTexture("./assets/models/unitTeapot.obj", kTestPNGFile_2,
 		m_device, m_commandQueue, descriptor_heap_srv_, quad_viewport, quad_scissor);
-
 	m_DXModelScene.push_back(pModel2);
+
+	DXModel * pModel3 = new DXModel();
+	pModel3->LoadModelAndTexture("./assets/models/unitsphere.obj", L"C:./assets/textures/green.png",
+		m_device, m_commandQueue, descriptor_heap_srv_, quad_viewport, quad_scissor);
+	m_DXModelScene.push_back(pModel3);
 
 	//Set Position of scene models
 	XMMATRIX world0 = XMMatrixTranslation(2.0f, 0, 2.0f);
 	XMMATRIX world1 = XMMatrixTranslation(-100.0f, -2.0, -100.0f);
+	XMMATRIX world2 = XMMatrixTranslation(-4.0f, 2.0, 0.0f);
+	XMMATRIX world3 = XMMatrixTranslation(0.0f, 1.0, 0.0f);
 
-	pModel->SetWorldMatrix(world0);
-	pModel2->SetWorldMatrix(world1);
-
+	pModel0->SetWorldMatrix(world0);
+	pModel1->SetWorldMatrix(world1);
+	pModel2->SetWorldMatrix(world2);
+	pModel3->SetWorldMatrix(world3);
 
 	//Create model (point cloud) and load data from file
 	m_pDXPointCloudModel = new DXModel();
