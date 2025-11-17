@@ -1408,7 +1408,7 @@ void DX12Raytracing_Inline_1::CreateRayTracingScene()
 
 	//Add mesh objects to the D3DModel objects.  The meshes have the actual ib and vb resources.
 	vModelObjects[0].AddMesh(mesh0); //cube
-	vModelObjects[0].AddMesh(mesh3); //axes
+	//vModelObjects[0].AddMesh(mesh3); //axes
 
 	//m_pD3DModel_1 has 1 mesh
 	vModelObjects[1].AddMesh(mesh2); //sphere

@@ -47,10 +47,10 @@ PS_INPUT VSMain( VS_INPUT i )
 
 float4 CastRay(float3 worldPos)
 {
-	float4 final = float4(0, 1, 0, 1);
+	float4 final = float4(1, 1, 1, 1);
 
 	// Instantiate ray query object. Template parameter allows driver to generate a specialized implementation.
-	RayQuery<RAY_FLAG_CULL_NON_OPAQUE 
+	RayQuery<RAY_FLAG_CULL_NON_OPAQUE | RAY_FLAG_CULL_BACK_FACING_TRIANGLES
 		| RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES 
 		| RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH> q;
 
@@ -91,6 +91,7 @@ float4 CastRay(float3 worldPos)
 	if (q.CommittedStatus() == COMMITTED_TRIANGLE_HIT)
 	{
 		final = float4(0.2, 0.2, 0.2, 1);
+
 		/*
 		ShadeMyTriangleHit(
 			q.CommittedInstanceIndex(),
