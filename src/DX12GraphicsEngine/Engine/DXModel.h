@@ -62,6 +62,12 @@ public:
 
 	static void SetInlineRayTracing(bool bEnableRT) { msbUseInlineRayTracing = bEnableRT; }
 
+	void SetModelId(uint32_t modelId);
+	uint32_t GetModelId() { return m_ModelID; }
+
+	void SetReceiveShadow(bool bReceiveShadow);
+	bool GetReceiveShadow() { return m_bReceiveShadow;  }
+
 protected:
 	void CreateD3DResources(ComPtr<ID3D12CommandQueue> & commandQueue);
 	void CreatePipelineState();
@@ -92,7 +98,8 @@ protected:
 	XMMATRIX     m_WorldMatrix;
 
 	std::shared_ptr<DXTexture> m_DXTexture;
-
+	uint32_t m_ModelID;
+	bool m_bReceiveShadow;
 	
 public:
 	static bool msbDebugUseSpritePointCloud;

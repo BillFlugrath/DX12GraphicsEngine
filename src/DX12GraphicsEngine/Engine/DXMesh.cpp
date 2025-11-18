@@ -22,6 +22,8 @@ using namespace DirectX;
 DXMesh::DXMesh() :
 	m_cbDescriptorIndex(0)
 	, m_pConstantBufferData(nullptr)
+	, m_ModelID(0)
+	, m_bReceiveShadow(false)
 {
 	
 }
@@ -515,9 +517,11 @@ void DXMesh::Render(ComPtr<ID3D12GraphicsCommandList>& pCommandList, const XMMAT
 	{
 		DirectX::XMFLOAT4X4 mvp4x4;
 		DirectX::XMFLOAT4X4 world4x4;
+		DirectX::XMFLOAT4 meshInfo; //x value is model index
 	};
 
-	ObjectConstantBufferInShader cb{ mvp4x4, world4x4 };
+	XMFLOAT4 meshInfo4((float)m_ModelID, m_bReceiveShadow ? 1.0f :0.0f , 0.0f ,0.0f);
+	ObjectConstantBufferInShader cb{ mvp4x4, world4x4, meshInfo4 };
 
 	memcpy(m_pConstantBufferData, &cb, sizeof(ObjectConstantBufferInShader));
 

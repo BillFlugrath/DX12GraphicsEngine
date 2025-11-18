@@ -217,22 +217,27 @@ void DX12Raytracing_Inline_1::LoadMainSceneModelsAndTextures(const CD3DX12_VIEWP
 	DXModel* pModel0 = new DXModel();
 	pModel0->LoadModelAndTexture(kTestObjModelFilename, kTestPNGFile,
 		m_device, m_commandQueue, descriptor_heap_srv_, quad_viewport, quad_scissor);
+	pModel0->SetModelId(0);
 	m_DXModelScene.push_back(pModel0);
 
 	//create model 1
 	DXModel* pModel1 = new DXModel();
 	pModel1->LoadModelAndTexture("./assets/models/plane300x300_b.obj", L"C:./assets/textures/floorTile.png",
 		m_device, m_commandQueue, descriptor_heap_srv_, quad_viewport, quad_scissor);
+	pModel1->SetModelId(1);
+	pModel1->SetReceiveShadow(true);
 	m_DXModelScene.push_back(pModel1);
 
 	DXModel* pModel2 = new DXModel();
 	pModel2->LoadModelAndTexture("./assets/models/unitTeapot.obj", kTestPNGFile_2,
 		m_device, m_commandQueue, descriptor_heap_srv_, quad_viewport, quad_scissor);
+	pModel2->SetModelId(2);
 	m_DXModelScene.push_back(pModel2);
 
 	DXModel * pModel3 = new DXModel();
 	pModel3->LoadModelAndTexture("./assets/models/unitsphere.obj", L"C:./assets/textures/green.png",
 		m_device, m_commandQueue, descriptor_heap_srv_, quad_viewport, quad_scissor);
+	pModel3->SetModelId(3);
 	m_DXModelScene.push_back(pModel3);
 
 	//Set Position of scene models

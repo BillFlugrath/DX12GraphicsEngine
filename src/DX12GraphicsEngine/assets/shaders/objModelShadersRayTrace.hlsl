@@ -20,6 +20,7 @@ cbuffer ObjectConstantBuffer : register(b0)
 {
 	float4x4 g_MVPMatrix;
 	float4x4 g_WorldMatrix;
+	float4   g_ModelMeshInfo;
 };
 
 SamplerState g_SamplerState : register(s0);
@@ -134,7 +135,11 @@ float4 PSMain( PS_INPUT i ) : SV_TARGET
 	float4 vColor = g_Texture.Sample( g_SamplerState, i.vUVCoords );
 	
 	float3 worldPos =  i.vWorldPosition.xyz;
-	float4 rayColor = CastRay(worldPos);
+	float4 rayColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
+	
+	//check if object should receive a shadow
+	if (g_ModelMeshInfo.y == 1.0f)
+		rayColor = CastRay(worldPos);
 
 	//return rayColor;
 

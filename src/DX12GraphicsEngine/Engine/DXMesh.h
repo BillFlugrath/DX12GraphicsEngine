@@ -45,6 +45,12 @@ public:
 	D3D12_VERTEX_BUFFER_VIEW& GetVertexBufferView() { return m_vertexBufferView; }
 	D3D12_INDEX_BUFFER_VIEW& GetIndexBufferView() { return m_indexBufferView; }
 
+	void SetModelId(uint32_t modelId) { m_ModelID = modelId; }
+	uint32_t GetModelId() { return m_ModelID; }
+
+	void SetReceiveShadow(bool bReceiveShadow) { m_bReceiveShadow = bReceiveShadow;}
+	bool GetReceiveShadow() { return m_bReceiveShadow; }
+
 protected:
     bool LoadOBJ( const char *                           path,
                   std::vector< DXGraphicsUtilities::vec3 > & out_vertices,
@@ -91,5 +97,8 @@ protected:
 	std::vector< uint16_t > m_Indices;
 	std::vector< uint32_t > m_Indices32bit;
 	std::vector< DXGraphicsUtilities::MeshVertexPosNormUV0 > m_Vertices;
+
+	uint32_t m_ModelID;
+	bool m_bReceiveShadow;
 };
 

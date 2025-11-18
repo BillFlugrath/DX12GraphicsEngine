@@ -26,6 +26,8 @@ DXModel::DXModel() :
 	, m_Viewport(0.0f, 0.0f, 0.0f, 0.0f)
 	, m_ScissorRect(0, 0, 0, 0)
 	, m_DXTexture(nullptr)
+	, m_ModelID(0)
+	, m_bReceiveShadow(false)
 {
 	m_WorldMatrix = XMMatrixIdentity();
 }
@@ -703,5 +705,25 @@ void  DXModel::LoadTextureResource(ComPtr<ID3D12Device>& device,
 	bool bLoaded = m_DXTexture->CreateTextureFromFile(device, commandQueue, srvDescriptorHeap, strFullPath, descriptorIndex);
 	
 	assert(bLoaded);
+}
+
+void DXModel::SetModelId(uint32_t modelId)
+{
+	m_ModelID = modelId;
+
+	if (m_pDXMesh)
+	{
+		m_pDXMesh->SetModelId(m_ModelID);
+	}
+}
+
+void DXModel::SetReceiveShadow(bool bReceiveShadow)
+{
+	m_bReceiveShadow = bReceiveShadow;
+
+	if (m_pDXMesh)
+	{
+		m_pDXMesh->SetReceiveShadow(m_bReceiveShadow);
+	}
 }
 
