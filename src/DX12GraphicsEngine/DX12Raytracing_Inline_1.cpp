@@ -252,7 +252,7 @@ void DX12Raytracing_Inline_1::LoadMainSceneModelsAndTextures(const CD3DX12_VIEWP
 
 	//Set Position of scene models
 	XMMATRIX world0 = XMMatrixTranslation(2.0f, 0, 2.0f);
-	XMMATRIX world1 = XMMatrixTranslation(-100.0f, -2.0, -100.0f);
+	XMMATRIX world1 = XMMatrixTranslation(0.0f, -2.0, 0.0f);
 	XMMATRIX world2 = XMMatrixTranslation(-4.0f, 2.0, 0.0f);
 	XMMATRIX world3 = XMMatrixTranslation(-3.0f, 2.0, 5.0f);
 
@@ -1382,7 +1382,7 @@ void DX12Raytracing_Inline_1::CreateRayTracingScene()
 	//Set world space position of the models
 	vModelObjects[0].SetPosition(2.0, 0, 2.0); //cube and axes
 	vModelObjects[1].SetPosition(-3.0, 2.0f, 5.0f); //sphere
-	vModelObjects[2].SetPosition(-100, -2.0, -100); //plane
+	vModelObjects[2].SetPosition(0, -2.0, 0); //plane
 	vModelObjects[3].SetPosition(-3, 2.0, 0); //teapot
 
 	//Set hit group for TLAS objects ie set hit group for each model
