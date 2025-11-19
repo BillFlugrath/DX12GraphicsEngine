@@ -10,6 +10,7 @@
 #include "./Engine/DXDescriptorHeap.h"
 #include  "./Engine/DXComputeShaders/DXPointCloudComputeShader_3.h"
 #include "./Engine/DXPointCloud.h"
+#include "./Engine/DXSkybox.h"
 
 #include "./Engine/DXR/Common.h"
 #include "./Engine/DXR/DXD3DUtilities.h"
@@ -239,6 +240,15 @@ void DX12Raytracing_Inline_1::LoadMainSceneModelsAndTextures(const CD3DX12_VIEWP
 		m_device, m_commandQueue, descriptor_heap_srv_, quad_viewport, quad_scissor);
 	pModel3->SetModelId(3);
 	m_DXModelScene.push_back(pModel3);
+
+	// skybox
+	DXModel* pModel4 = new DXSkyBox();
+	const wchar_t* szFileName = L"./assets/textures/CubeMaps/snowcube1024.dds";
+
+	pModel4->LoadModelAndTexture("./assets/models/unitsphere.obj", szFileName,
+		m_device, m_commandQueue, descriptor_heap_srv_, quad_viewport, quad_scissor);
+	pModel4->SetModelId(4);
+	m_DXModelScene.push_back(pModel4);
 
 	//Set Position of scene models
 	XMMATRIX world0 = XMMatrixTranslation(2.0f, 0, 2.0f);
@@ -906,6 +916,11 @@ void DX12Raytracing_Inline_1::WorkerThread(int threadIndex)
 			*/
 			
 			m_pDXPointCloudModel->Update(m_DXCamera);
+
+			for (DXModel* pModel : m_DXModelScene)
+			{
+				pModel->Update(m_DXCamera);
+			}
 
 			RenderScene();
 		}

@@ -219,6 +219,9 @@
     <ClInclude Include="DX12Raytracing_Inline_1.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\DXSkybox.h">
+      <Filter>EngineAndDXR\Engine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -325,6 +328,9 @@
     </ClCompile>
     <ClCompile Include="DX12Raytracing_Inline_1.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\DXSkybox.cpp">
+      <Filter>EngineAndDXR\Engine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

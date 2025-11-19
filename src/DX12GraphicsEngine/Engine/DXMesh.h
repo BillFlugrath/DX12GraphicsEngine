@@ -2,15 +2,11 @@
 #include "DXGraphicsUtilities.h"
 using namespace DirectX;
 
-// Note that while ComPtr is used to manage the lifetime of resources on the CPU,
-// it has no understanding of the lifetime of resources on the GPU. Apps must account
-// for the GPU lifetime of resources to avoid destroying objects that may still be
-// referenced by the GPU.
-// An example of this can be found in the class method: OnDestroy().
 using Microsoft::WRL::ComPtr;
 
 #include <vector>
 
+class DXCamera;
 
 class DXMesh
 {
@@ -18,7 +14,6 @@ public:
     DXMesh();
     virtual ~DXMesh();
 
-  
 	void Render(ComPtr<ID3D12GraphicsCommandList> & pCommandList, const XMMATRIX &matMVP);
 	void Render(ComPtr<ID3D12GraphicsCommandList>& pCommandList, const XMMATRIX& matWorld, const XMMATRIX& matMVP);
 
@@ -50,6 +45,8 @@ public:
 
 	void SetReceiveShadow(bool bReceiveShadow) { m_bReceiveShadow = bReceiveShadow;}
 	bool GetReceiveShadow() { return m_bReceiveShadow; }
+
+	void SetCamera(DXCamera* pCamera) { m_pDXCamera = pCamera;  }
 
 protected:
     bool LoadOBJ( const char *                           path,
@@ -100,5 +97,6 @@ protected:
 
 	uint32_t m_ModelID;
 	bool m_bReceiveShadow;
+	DXCamera* m_pDXCamera;
 };
 

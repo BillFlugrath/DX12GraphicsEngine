@@ -206,6 +206,7 @@ xcopy /y  ".\RequiredDlls\dxil.dll"  ".\bin\x64\Release\dxil.dll"</Command>
     <ClInclude Include="Engine\DXR\thirdparty\tiny_obj_loader.h" />
     <ClInclude Include="Engine\DXR\Utils.h" />
     <ClInclude Include="Engine\DXR\Window.h" />
+    <ClInclude Include="Engine\DXSkybox.h" />
     <ClInclude Include="Engine\DXTexture.h" />
     <ClInclude Include="Engine\DXTexturedQuad.h" />
     <ClInclude Include="Engine\lodepng.h" />
@@ -253,6 +254,7 @@ xcopy /y  ".\RequiredDlls\dxil.dll"  ".\bin\x64\Release\dxil.dll"</Command>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Engine\DXSkybox.cpp" />
     <ClCompile Include="Engine\DXTexture.cpp" />
     <ClCompile Include="Engine\DXTexturedQuad.cpp" />
     <ClCompile Include="Engine\lodepng.cpp" />

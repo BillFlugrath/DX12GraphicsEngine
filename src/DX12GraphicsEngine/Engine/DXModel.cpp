@@ -4,6 +4,7 @@
 #include "DXMesh.h"
 #include "DXTexture.h"
 #include "DXDescriptorHeap.h"
+#include "DXCamera.h"
 
 #include "./DXR/DXShaderUtilities.h"
 #include "./DXR/DXD3DUtilities.h"
@@ -28,6 +29,7 @@ DXModel::DXModel() :
 	, m_DXTexture(nullptr)
 	, m_ModelID(0)
 	, m_bReceiveShadow(false)
+	, m_pDXCamera(nullptr)
 {
 	m_WorldMatrix = XMMatrixIdentity();
 }
@@ -571,9 +573,16 @@ void DXModel::RenderPointCloud(ComPtr<ID3D12GraphicsCommandList>& pCommandList, 
 
 void  DXModel::Update(DXCamera* pCamera)
 {
+	m_pDXCamera = pCamera;
+
 	if (m_pDXPointCloud)
 	{
 		m_pDXPointCloud->Update(pCamera);
+	}
+
+	if (m_pDXMesh)
+	{
+		m_pDXMesh->SetCamera(pCamera);
 	}
 }
 

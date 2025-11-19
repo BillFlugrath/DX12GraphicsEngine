@@ -21,6 +21,7 @@ cbuffer ObjectConstantBuffer : register(b0)
 	float4x4 g_MVPMatrix;
 	float4x4 g_WorldMatrix;
 	float4   g_ModelMeshInfo; //x=model id, y=shadow receive
+	float4   g_CameraPos;
 };
 
 SamplerState g_SamplerState : register(s0);
@@ -32,7 +33,11 @@ TextureCube cubeMap_0 : register(t2);
 PS_INPUT VSMain( VS_INPUT i )
 {
 	PS_INPUT o;
-	o.vPosition = mul(float4(i.vPosition, 1.0), g_MVPMatrix );
+
+	i.vPosition.xyz += g_CameraPos.xyz; //move skybox with camera
+
+	//set z=w to that z will equal 1.0 and therefore be on far plane
+	o.vPosition = mul(float4(i.vPosition, 1.0), g_MVPMatrix ).xyww; //swizzle to set z=w
 
 #ifdef VULKAN
 	o.vPosition.y = -o.vPosition.y;
@@ -40,7 +45,7 @@ PS_INPUT VSMain( VS_INPUT i )
 
 	o.vUVCoords = i.vUVCoords;
 	o.vUVCoords.y = 1.0 - i.vUVCoords.y; //flip the texture coords on y since they we modeled for gl
-	o.vNormal = i.vNormal;
+	o.vNormal = mul(float4(i.vNormal, 1.0), g_WorldMatrix).xyz;
 	o.vWorldPosition = mul(float4(i.vPosition, 1.0), g_WorldMatrix);
 
 	return o;
@@ -58,9 +63,7 @@ float4 CastRay(float3 worldPos)
 	//RayQuery < RAY_FLAG_FORCE_OPAQUE > q2;
 
 	// Create a shadow ray. The direction is hard-coded here, but can be fetched from a constant-buffer
-
 	float3 rayDirW = normalize(float3(0.0, 1.0, -0.2));
-	//float3 rayOriginW = float3(0, 0, 0);
 	float3 rayOriginW =  worldPos;
 
 	RayDesc ray;
@@ -86,34 +89,24 @@ float4 CastRay(float3 worldPos)
 		return float4(0, 1, 0, 1);
 	}
 
-	//q.Proceed();
-
 	// Examine and act on the result of the traversal. Was a hit committed?
 	if (q.CommittedStatus() == COMMITTED_TRIANGLE_HIT)
 	{
 		final = float4(0.2, 0.2, 0.2, 1);
 
 		/*
-		ShadeMyTriangleHit(
-			q.CommittedInstanceIndex(),
-			q.CommittedPrimitiveIndex(),
-			q.CommittedGeometryIndex(),
-			q.CommittedRayT(),
-			q.CommittedTriangleBarycentrics(),
-			q.CommittedTriangleFrontFace());
-			*/
+		ShadeMyTriangleHit( q.CommittedInstanceIndex(), q.CommittedPrimitiveIndex(),q.CommittedGeometryIndex(),
+			q.CommittedRayT(),q.CommittedTriangleBarycentrics(),q.CommittedTriangleFrontFace());
+		*/
 	}
 	else if (q.CommittedStatus() == COMMITTED_NOTHING) // COMMITTED_NOTHING
-		 // From template specialization,
-		 // COMMITTED_PROCEDURAL_PRIMITIVE can't happen.
+		 // From template specialization, COMMITTED_PROCEDURAL_PRIMITIVE can't happen.
 	{
 		final = float4(1,1,1, 1);
 		// Do miss shading
 		/*
-		MyMissColorCalculation(
-			q.WorldRayOrigin(),
-			q.WorldRayDirection());
-			*/
+		MyMissColorCalculation(q.WorldRayOrigin(), q.WorldRayDirection());
+		*/
 	}
 	else
 	{
@@ -125,28 +118,17 @@ float4 CastRay(float3 worldPos)
 
 float4 PSMain( PS_INPUT i ) : SV_TARGET
 {
-	//return float4(1, 1, 0, 1);
-
-	float3 vNormal = i.vNormal;
-	float3 lightDir =float3(-0.5, 2.0f, -1.0);
-	lightDir = normalize(lightDir);
-	float dp = dot(vNormal, lightDir);
-	float4 dp_vec=float4(dp, dp, dp, 1);
-	float4 vColor = g_Texture.Sample( g_SamplerState, i.vUVCoords );
+	float3 vNormal = normalize(i.vNormal);
 	
-	float3 worldPos =  i.vWorldPosition.xyz;
-	float4 rayColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
+	float3 dir = vNormal.xyz;
+	float4 vColor = cubeMap_0.Sample( g_SamplerState, dir );
+	return vColor;
+
+	//float3 worldPos =  i.vWorldPosition.xyz;
+	//float4 rayColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
 	
 	//check if object should receive a shadow
-	if (g_ModelMeshInfo.y == 1.0f)
-		rayColor = CastRay(worldPos);
-
-	//return rayColor;
-
-	vColor.rgb= float4(vColor.rgb,1.0) * rayColor; //modulate by inline ray color
-
-	return vColor * dp_vec + float4(0.1, 0.1, 0.1, 1);;
-
-	//return dp_vec;// float4(vNormal, 1);
+	//if (g_ModelMeshInfo.y == 1.0f)
+		//rayColor = CastRay(worldPos);
 }
 

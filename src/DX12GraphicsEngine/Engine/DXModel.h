@@ -16,10 +16,10 @@ class DXModel
 {
 public:
 	DXModel();
-	~DXModel();
+	virtual ~DXModel();
 
 	void Render(ComPtr<ID3D12GraphicsCommandList> & pCommandList, const DirectX::XMMATRIX & view, const DirectX::XMMATRIX & proj) ;
-	void Render(ComPtr<ID3D12GraphicsCommandList>& pCommandList, const DirectX::XMMATRIX& view,
+	virtual void Render(ComPtr<ID3D12GraphicsCommandList>& pCommandList, const DirectX::XMMATRIX& view,
 		const DirectX::XMMATRIX& proj, std::vector<DXGraphicsUtilities::SrvParameter>& rootParams);
 	
 	void RenderPointCloud(ComPtr<ID3D12GraphicsCommandList>& pCommandList, const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& proj);
@@ -32,7 +32,7 @@ public:
 		 CD3DX12_VIEWPORT Viewport,
 		 CD3DX12_RECT ScissorRect );
 
-	 void LoadModelAndTexture(const std::string& modelFileName, const std::wstring& strTextureFullPath,
+	 virtual void LoadModelAndTexture(const std::string& modelFileName, const std::wstring& strTextureFullPath,
 		 ComPtr<ID3D12Device>& pd3dDevice, ComPtr<ID3D12CommandQueue>& commandQueue,
 		 std::shared_ptr<DXDescriptorHeap> &descriptor_heap_srv, const CD3DX12_VIEWPORT& Viewport,
 		 const CD3DX12_RECT &ScissorRect);
@@ -100,6 +100,7 @@ protected:
 	std::shared_ptr<DXTexture> m_DXTexture;
 	uint32_t m_ModelID;
 	bool m_bReceiveShadow;
+	DXCamera* m_pDXCamera;
 	
 public:
 	static bool msbDebugUseSpritePointCloud;
