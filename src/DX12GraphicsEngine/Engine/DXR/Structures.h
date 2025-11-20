@@ -145,11 +145,17 @@ struct ViewCB
 	XMMATRIX view;
 	XMFLOAT4 viewOriginAndTanHalfFovY;
 	XMFLOAT2 resolution;
+	XMMATRIX worldToProjection;
+	XMMATRIX projectionToWorld;
+	XMFLOAT4 eyeToPixelConeSpreadAngle;
 
 	ViewCB() {
 		view = XMMatrixIdentity();
 		viewOriginAndTanHalfFovY = XMFLOAT4(0, 0.f, 0.f, 0.f);
 		resolution = XMFLOAT2(1280, 720);
+		worldToProjection = XMMatrixIdentity();
+		projectionToWorld = XMMatrixIdentity();
+		eyeToPixelConeSpreadAngle = XMFLOAT4(0, 0.f, 0.f, 0.f);
 	}
 };
 

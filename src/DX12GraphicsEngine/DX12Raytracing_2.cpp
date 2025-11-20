@@ -195,9 +195,10 @@ void DX12Raytracing_2::LoadModelsAndTextures()
 	bLoaded = m_vTextureObjects[2]->CreateTextureFromFile(pDevice, pCommandQueue, kTestPngFile_2);
 	assert(bLoaded && "Failed to load texture!");
 
-	const std::wstring kTestPngFile_3 = L"C:./assets/textures/floorTile.png";
-	bLoaded = m_vTextureObjects[3]->CreateTextureFromFile(pDevice, pCommandQueue, kTestPngFile_3);
-	assert(bLoaded && "Failed to load texture!");
+	const std::wstring kTestPngFile_3 = L"C:./assets/textures/floorTileMips.dds";
+	HRESULT hr = m_vTextureObjects[3]->CreateDDSTextureFromFile12(pDevice.Get(), pCommandQueue, kTestPngFile_3.c_str());
+	ThrowIfFailed(hr, L"Failed to load texture!");
+	
 
 	//load cube map
 	ID3D12Device* device = static_cast<ID3D12Device*>(m_dxrDevice);
@@ -213,7 +214,7 @@ void DX12Raytracing_2::LoadModelsAndTextures()
 void DX12Raytracing_2::OnUpdate()
 {
 	m_pDXCamera->Update();
-	m_pDXRManager->Update(m_pDXCamera->GetViewMatrix(), m_pDXCamera->GetPosition(), m_pDXCamera->GetFOV());
+	m_pDXRManager->Update(m_pDXCamera->GetViewMatrix(), m_pDXCamera->GetProjectionMatrix(), m_pDXCamera->GetPosition(), m_pDXCamera->GetFOV());
 	m_pDXRManager->UpdateUnboundCB(*m_pD3DSceneModels, *m_pD3DSceneTextures2D);
 }
 

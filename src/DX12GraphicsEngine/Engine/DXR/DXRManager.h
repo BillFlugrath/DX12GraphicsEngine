@@ -39,7 +39,7 @@ public:
 	void ExecuteCommandList();
 	void ResetCommandList();
 
-	void Update(XMMATRIX& view, XMFLOAT3& cam_pos, float cam_fov);
+	void Update(XMMATRIX& view, XMMATRIX& proj, XMFLOAT3& cam_pos, float cam_fov);
 	void UpdateUnboundCB(D3DSceneModels& d3dSceneModels, D3DSceneTextures& textures2D);
 	void Render();
 

@@ -33,7 +33,8 @@ public:
 	void Create_RTV_And_Sampler_Descriptor_Heaps(D3D12Global& d3d, D3D12Resources& resources);
 
 	//camera data updated every frame.  Camera data used for ray gen shader.
-	void UpdateCameraCB(D3D12Global& d3d, D3D12Resources& resources, XMMATRIX& view, XMFLOAT3& cam_pos, float cam_fov);
+	void UpdateCameraCB(D3D12Global& d3d, D3D12Resources& resources, XMMATRIX& view, 
+		XMMATRIX& proj, XMFLOAT3& cam_pos, float cam_fov);
 
 	void Destroy(D3D12Resources& resources);
 

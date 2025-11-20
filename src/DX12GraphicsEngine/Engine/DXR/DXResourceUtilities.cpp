@@ -252,7 +252,8 @@ void DXResourceUtilities::Create_RTV_And_Sampler_Descriptor_Heaps(D3D12Global& d
 /**
 * Update the view constant buffer.
 */
-void DXResourceUtilities::UpdateCameraCB(D3D12Global& d3d, D3D12Resources& resources, XMMATRIX& view, XMFLOAT3& cam_pos, float cam_fov)
+void DXResourceUtilities::UpdateCameraCB(D3D12Global& d3d, D3D12Resources& resources, XMMATRIX& view, 
+	XMMATRIX& proj, XMFLOAT3& cam_pos, float cam_fov)
 {
 	XMMATRIX  invView;
 	XMFLOAT3 eye = cam_pos;
@@ -263,7 +264,16 @@ void DXResourceUtilities::UpdateCameraCB(D3D12Global& d3d, D3D12Resources& resou
 	resources.viewCBData.view = XMMatrixTranspose(invView);
 	resources.viewCBData.viewOriginAndTanHalfFovY = XMFLOAT4(eye.x, eye.y, eye.z, tanf(fov * 0.5f));
 	resources.viewCBData.resolution = XMFLOAT2((float)d3d.width, (float)d3d.height);
+	
+	XMMATRIX viewProj = view * proj;
+	//float fov_degrees = fov * 180.0f / XM_PI;
+
+    resources.viewCBData.worldToProjection = viewProj;
+	resources.viewCBData.projectionToWorld = XMMatrixInverse(nullptr, viewProj);
+    resources.viewCBData.eyeToPixelConeSpreadAngle.x = atanf((2.0f*tanf(fov *0.5f))/(float)d3d.height);
+
 	memcpy(resources.viewCBStart, &resources.viewCBData, sizeof(resources.viewCBData));
+	
 }
 
 

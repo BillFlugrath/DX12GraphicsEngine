@@ -225,9 +225,9 @@ HRESULT DXRManager::CreateConstantBufferResources(float textureResolution)
 	return hr;
 }
 
-void DXRManager::Update(XMMATRIX& view, XMFLOAT3& cam_pos, float cam_fov)
+void DXRManager::Update(XMMATRIX& view, XMMATRIX& proj, XMFLOAT3& cam_pos, float cam_fov)
 {
-	m_pDXResourceUtilities->UpdateCameraCB(d3d, resources, view, cam_pos, cam_fov);
+	m_pDXResourceUtilities->UpdateCameraCB(d3d, resources, view, proj, cam_pos, cam_fov);
 }
 
 void DXRManager::UpdateUnboundCB(D3DSceneModels& d3dSceneModels, D3DSceneTextures& textures2D)

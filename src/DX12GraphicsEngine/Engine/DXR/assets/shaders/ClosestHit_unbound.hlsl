@@ -1,5 +1,7 @@
 
-#include "Common_unbound.hlsl"
+//#include "Common_unbound.hlsl"
+
+#include "RayCone.hlsl"
 
 struct ShadowPayload
 {
@@ -105,7 +107,10 @@ void ClosestHit(inout HitInfo payload : SV_RayPayload,
 
 	uint meshIndex = GetMeshIndex();
 	uint texIndex = diffuseTextureIndexForMesh[meshIndex].x;
-	float3 color = diffuse_textures[texIndex].SampleLevel(g_SamplerState, vertex.uv, 0);
+
+	uint texLod = CalculateTexLod(diffuse_textures[texIndex], attrib);
+
+	float3 color = diffuse_textures[texIndex].SampleLevel(g_SamplerState, vertex.uv, texLod);
 
 	ShadowPayload shadowPayload = CastShadowRay(vertex.normal);
 

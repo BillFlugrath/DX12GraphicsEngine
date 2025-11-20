@@ -1,4 +1,5 @@
 
+
 // ---[ Structures ]---
 
 #define PRIMARY_RAY_INDEX 1
@@ -23,6 +24,9 @@ cbuffer ViewCB : register(b0)
 	matrix invView;
 	float4 viewOriginAndTanHalfFovY; //camera position in x,y,z.  camera vertical field of view/2 in w.
 	float2 outputResolution;  //resolution of the render target UAV 
+	matrix worldToProjection;
+	matrix projectionToWorld;
+	float4 eyeToPixelConeSpreadAngle; //use only x component
 };
 
 cbuffer MaterialCB : register(b1)

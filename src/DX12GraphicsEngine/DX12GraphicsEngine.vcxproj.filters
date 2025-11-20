@@ -352,6 +352,12 @@
     <FxCompile Include="Engine\DXR\assets\shaders\RayGen_unbound.hlsl">
       <Filter>EngineAndDXR\DXR\assets\shaders</Filter>
     </FxCompile>
+    <FxCompile Include="Engine\DXR\assets\shaders\BarycentricDerivative.hlsl">
+      <Filter>EngineAndDXR\DXR\assets\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Engine\DXR\assets\shaders\RayCone.hlsl">
+      <Filter>EngineAndDXR\DXR\assets\shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="readme_by_bill_2.txt">
