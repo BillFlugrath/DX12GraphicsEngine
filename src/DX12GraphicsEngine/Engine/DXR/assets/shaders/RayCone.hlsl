@@ -96,12 +96,8 @@ float4 UVDerivsFromRayCone(float3 vRayDir, float3 vWorldNormal, float vRayConeWi
 	return float4(fULength, 0, 0, fULength);
 }
 
-uint CalculateTexLod(Texture2D<float4> tex, IntersectionAttributes attrib )
+uint CalculateTexLod(Texture2D<float4> tex, IntersectionAttributes attrib, out float4 uvDerivs)
 {
-	//uint triangleIndex = PrimitiveIndex(); //get triangle index
-	//float3 barycentrics = float3((1.0f - attrib.uv.x - attrib.uv.y), attrib.uv.x, attrib.uv.y);
-	//VertexAttributes vertex = GetVertexAttributes(triangleIndex, barycentrics);
-
 	uint triangleIndex = PrimitiveIndex(); //get triangle index
 	uint flatIndex = GetIndexBufferArrayIndex();
 
@@ -110,14 +106,10 @@ uint CalculateTexLod(Texture2D<float4> tex, IntersectionAttributes attrib )
 	VertexAttributes Verts[3];
 	GetVertexAttributes(triangleIndex, Verts);
 
-	//const uint3 indices = Load3x16BitIndices(PrimitiveIndex()*3*2); // 3 2-byte indices per triangle
-  //  const Vertex verts[3] = { Vertices[indices[0]], Vertices[indices[1]], Vertices[indices[2]] };
-
     const float3 hitPosition = WorldRayOrigin() + RayTCurrent() * WorldRayDirection();
 	const float2 uv = HitAttribute(Verts[0].uv, Verts[1].uv, Verts[2].uv, attrib);
 	const float3 nrm = HitAttribute(Verts[0].normal, Verts[1].normal, Verts[2].normal, attrib); // in world space because model is in world space
 	
-
     const float3 aPos[3] = { Verts[0].position, Verts[1].position, Verts[2].position };
 	const float2 aUVs[3] = { Verts[0].uv, Verts[1].uv, Verts[2].uv };
 
@@ -135,6 +127,9 @@ uint CalculateTexLod(Texture2D<float4> tex, IntersectionAttributes attrib )
 	uint2 vTexSize;
 	tex.GetDimensions(vTexSize.x, vTexSize.y);
 	float texLOD = UVAreaToTexLOD(vTexSize, uvAreaFromCone);
+
+	//alternative is to calculate the uv derivatives.  Fill in the out parameter
+	uvDerivs = UVDerivsFromRayCone(WorldRayDirection(), nrm, rayConeAtHit.x, aUVs, aPos, (float3x3)matWorld);
 	
 	return texLOD;
 }

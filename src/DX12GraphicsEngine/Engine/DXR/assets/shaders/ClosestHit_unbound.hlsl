@@ -107,10 +107,18 @@ void ClosestHit(inout HitInfo payload : SV_RayPayload,
 
 	uint meshIndex = GetMeshIndex();
 	uint texIndex = diffuseTextureIndexForMesh[meshIndex].x;
+	float4 uvDerivs;
+	uint texLod = CalculateTexLod(diffuse_textures[texIndex], attrib, uvDerivs);
 
-	uint texLod = CalculateTexLod(diffuse_textures[texIndex], attrib);
+	//Note: we have two method to sample the texture with.  Both based on a cone shape and the current triangle.
+	//One method calculates the mip level ie texLod and uses texture.SampleLevel.  The other method uses
+	//SampleGrad based on the uv derivatives.
 
-	float3 color = diffuse_textures[texIndex].SampleLevel(g_SamplerState, vertex.uv, texLod);
+	//SampleLevel
+	//float3 color = diffuse_textures[texIndex].SampleLevel(g_SamplerState, vertex.uv, texLod);
+
+	//SampleGrad
+	float3 color = diffuse_textures[texIndex].SampleGrad(g_SamplerState, vertex.uv, uvDerivs.xy, uvDerivs.zw);
 
 	ShadowPayload shadowPayload = CastShadowRay(vertex.normal);
 
