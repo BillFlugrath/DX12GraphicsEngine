@@ -28,6 +28,8 @@ void DXMeshShader::Init(ComPtr<ID3D12Device>& pd3dDevice, ComPtr<ID3D12CommandQu
 
 	m_pd3dDevice = pd3dDevice;
 
+	ThrowIfFailed(m_pd3dDevice->QueryInterface(IID_PPV_ARGS(&m_pd3dDevice2)), L"Couldn't get interface for the device.\n");
+
 	m_cbvSrvHeap = pCBVSRVHeap;
 //	m_cbDescriptorIndex = cbDescriptorIndex;
 
@@ -124,11 +126,11 @@ void DXMeshShader::CreatePipelineState()
 		//shaderUtils.Destroy(shaderCompiler);
 		
 		
-		/*
+	
 		// Describe and create the graphics pipeline state objects (PSOs).
 		D3DX12_MESH_SHADER_PIPELINE_STATE_DESC psoDesc = {};
 		psoDesc.pRootSignature = m_pRootSignature.Get();
-
+		
 		psoDesc.MS.BytecodeLength = vsBlob->GetBufferSize();
 		psoDesc.MS.pShaderBytecode = vsBlob->GetBufferPointer();
 
@@ -151,9 +153,14 @@ void DXMeshShader::CreatePipelineState()
 		psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 		psoDesc.SampleDesc.Count = 1;
 
-		ThrowIfFailed(m_pd3dDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pMeshShaderPipelineState)));
+		CD3DX12_PIPELINE_MESH_STATE_STREAM psoStream = CD3DX12_PIPELINE_MESH_STATE_STREAM(psoDesc);
+
+		D3D12_PIPELINE_STATE_STREAM_DESC steamDesc = {};
+		steamDesc.SizeInBytes = sizeof(psoStream);
+		steamDesc.pPipelineStateSubobjectStream = &psoStream;
+
+		ThrowIfFailed(m_pd3dDevice2->CreatePipelineState(&steamDesc, IID_PPV_ARGS(&m_pMeshShaderPipelineState)));
 		NAME_D3D12_OBJECT(m_pMeshShaderPipelineState);
-		*/
 	}
 }
 
@@ -260,29 +267,32 @@ void DXMeshShader::CreateRootSignature()
 	}
 }
 
-void DXMeshShader::Render(ComPtr<ID3D12GraphicsCommandList>& pCommandList, const DirectX::XMMATRIX& view,
+void DXMeshShader::Render(ComPtr<ID3D12GraphicsCommandList>& pGraphicsCommandList, const DirectX::XMMATRIX& view,
 	const DirectX::XMMATRIX& proj, std::vector<DXGraphicsUtilities::SrvParameter>& rootSrvParams)
 {
+
+	ComPtr<ID3D12GraphicsCommandList6> pCommandList;
+	ThrowIfFailed(pGraphicsCommandList->QueryInterface(IID_PPV_ARGS(&pCommandList)), L"Couldn't get interface for the device.\n");
+
+
 	pCommandList->SetPipelineState(m_pMeshShaderPipelineState.Get());
 	pCommandList->SetGraphicsRootSignature(m_pRootSignature.Get());
 
 	ID3D12DescriptorHeap* ppHeaps[] = { m_cbvSrvHeap.Get() };
 	pCommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
 
-	//int cubemap_root_parameter = 3;
-	//pCommandList->SetGraphicsRootDescriptorTable(cubemap_root_parameter, m_CubemapGPUHandle);
+	//for (auto param : rootSrvParams)
+	//{
+		//pCommandList->SetGraphicsRootDescriptorTable(param.mRootParamIndex, param.mHandle);
+	//}
 
-	for (auto param : rootSrvParams)
-	{
-		pCommandList->SetGraphicsRootDescriptorTable(param.mRootParamIndex, param.mHandle);
-	}
+	pCommandList->DispatchMesh(1, 1, 1);
 
+//	XMMATRIX wv = XMMatrixMultiply(m_WorldMatrix, view);
+	//XMMATRIX wvp = XMMatrixMultiply(wv, proj);
+	//XMMATRIX vp = XMMatrixMultiply(view, proj);
 
-	XMMATRIX wv = XMMatrixMultiply(m_WorldMatrix, view);
-	XMMATRIX wvp = XMMatrixMultiply(wv, proj);
-	XMMATRIX vp = XMMatrixMultiply(view, proj);
-
-	m_pDXMesh->Render(pCommandList, m_WorldMatrix, wvp);
+	//m_pDXMesh->Render(pCommandList, m_WorldMatrix, wvp);
 }
 
 void DXMeshShader::CreateSRVs(std::shared_ptr<DXDescriptorHeap>& descriptor_heap_srv)

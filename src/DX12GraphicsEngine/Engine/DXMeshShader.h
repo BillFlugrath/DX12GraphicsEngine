@@ -42,7 +42,9 @@ protected:
 
 	//uint32_t m_CubeTextureDescriptorIndex;
 	//CD3DX12_GPU_DESCRIPTOR_HANDLE m_CubemapGPUHandle;
+
 	ComPtr<ID3D12PipelineState> m_pMeshShaderPipelineState;
 
 	ComPtr<ID3D12RootSignature> rootSig;
+	ComPtr<ID3D12Device2> m_pd3dDevice2;
 };

@@ -1040,6 +1040,8 @@ void DX12MeshShader_1::RenderScene()
 		{
 			pModel->Render(m_sceneCommandList, view, proj, vParams); //render into RTT contained in quad class
 		}
+
+		m_pDXMeshShader->Render(m_sceneCommandList, view, proj, vParams);
 	}
 
 	//Render point cloud
