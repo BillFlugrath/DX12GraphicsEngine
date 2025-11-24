@@ -37,7 +37,7 @@
 #include <assert.h>
 
 #include <dxgi1_6.h>
-#include <d3d12_1.h>
+//#include <d3d12_1.h>
 #include <atlbase.h>
 
 #include "d3dx12.h"

@@ -2,7 +2,10 @@
 #include "Common_unbound.hlsl"
 
 /*
-GPU Gems Chapter 7 https://github.com/Apress/Ray-Tracing-Gems-II/
+GPU Gems 2 Chapter 7 https://github.com/Apress/Ray-Tracing-Gems-II/ for working VS example code.
+
+GPU Gems 1 Chapter 20 for detailed diagrams.  See page 331 for diagram and description of how the cone is
+calculated.
 */
 
 void GetVertexAttributes(uint triangleIndex, out VertexAttributes Verts[3])
@@ -16,10 +19,13 @@ void GetVertexAttributes(uint triangleIndex, out VertexAttributes Verts[3])
 	//where the weight for each vertex is its barycentric value.  Each vertex has 1 weight (a weight is a scalar float).
 	for (uint i = 0; i < 3; i++)
 	{
-		//start triangle vertex address.  This is simply an index into the byte array used to store vertices
+		//address of vertex i.  This is simply an index into the byte array used to store vertices
 		//Each vertex is 8 floats and we have 4 bytes per float.
-		// Thus, we calculate a byte offset into the vertex buffer.  This is the address of the first vertex.
+		// Thus, we calculate a byte offset into the vertex buffer.  This is the address of the vertex.
 		int address = (triIndices[i] * 8) * 4;
+
+		//The actual vertex buffer for the triangle is indices_and_verts[flatIndex + 1] ie
+		//indices_and_verts[flatIndex + 1] is the Srv for the ByteAddressBuffer corresponding to the vb.
 
 		//position of vertex is at beginning of address
 		Verts[i].position = asfloat(indices_and_verts[flatIndex + 1].Load3(address)); //read 3 floats ie x,y,z of position
@@ -113,23 +119,32 @@ uint CalculateTexLod(Texture2D<float4> tex, IntersectionAttributes attrib, out f
     const float3 aPos[3] = { Verts[0].position, Verts[1].position, Verts[2].position };
 	const float2 aUVs[3] = { Verts[0].uv, Verts[1].uv, Verts[2].uv };
 
-	const float2 rayConeAtOrigin = float2(0, eyeToPixelConeSpreadAngle.x);
+	//rayCone has 2 members: width and spread angle. thus, rayCone.x=width and rayCone.y=spread angle.  Starting width=0.
+	//spread angle equation page 334 spread angle at origin set in C++.  Thus, rayConeAtHit is a new rayCone where
+	//the ray intersects the object.
+
+	float rayConeSpreadAngleAtOrigin = eyeToPixelConeSpreadAngle.x;
+	float rayConeWidthAtOrigin = 0;
+
+	const float2 rayConeAtOrigin = float2(rayConeWidthAtOrigin, rayConeSpreadAngleAtOrigin);
 	const float2 rayConeAtHit = float2(
-		// New cone width should increase by 2*RayLength*tan(SpreadAngle/2), but RayLength*SpreadAngle is a close approximation
+	// New cone width should increase by 2*RayLength*tan(SpreadAngle/2), but RayLength*SpreadAngle is a close approximation
 		rayConeAtOrigin.x+rayConeAtOrigin.y*length(hitPosition-viewOriginAndTanHalfFovY.xyz),
 		rayConeAtOrigin.y+eyeToPixelConeSpreadAngle.x);
 
     const matrix matWorld = matrix(float4(1,0,0,0), float4(0,1,0,0), float4(0,0,1,0), float4(0,0,0,1));
 
-	float2 uvAreaFromCone = UVAreaFromRayCone(WorldRayDirection(), nrm, rayConeAtHit.x, aUVs, aPos, (float3x3)matWorld);
+	float rayConeWidthAtHitPoint = rayConeAtHit.x;
+
+	float2 uvAreaFromCone = UVAreaFromRayCone(WorldRayDirection(), nrm, rayConeWidthAtHitPoint, aUVs, aPos, (float3x3)matWorld);
 	
 
 	uint2 vTexSize;
 	tex.GetDimensions(vTexSize.x, vTexSize.y);
-	float texLOD = UVAreaToTexLOD(vTexSize, uvAreaFromCone);
+	float texLOD = UVAreaToTexLOD(vTexSize, uvAreaFromCone); //the mip level to use if texture.SampleLevel is called.
 
-	//alternative is to calculate the uv derivatives.  Fill in the out parameter
-	uvDerivs = UVDerivsFromRayCone(WorldRayDirection(), nrm, rayConeAtHit.x, aUVs, aPos, (float3x3)matWorld);
+	//alternative is to calculate the uv derivatives.  Fill in the out parameter to return uv derivatives.
+	uvDerivs = UVDerivsFromRayCone(WorldRayDirection(), nrm, rayConeWidthAtHitPoint, aUVs, aPos, (float3x3)matWorld);
 	
 	return texLOD;
 }

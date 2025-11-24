@@ -25,7 +25,7 @@
 #include <fstream>
 #include <sstream>
 #include <cassert>
-#include "../Include/d3dx12.h"
+//#include "../Include/d3dx12.h"
 
 
 extern const int gNumFrameResources;

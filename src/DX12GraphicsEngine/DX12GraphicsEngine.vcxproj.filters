@@ -67,6 +67,9 @@
     <Filter Include="assets\textures">
       <UniqueIdentifier>{af00b0c9-bb20-47df-a311-224164e896f7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="TestFiles">
+      <UniqueIdentifier>{fa3ddce6-7771-44a9-bdd5-30693132aebe}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -222,6 +225,12 @@
     <ClInclude Include="Engine\DXSkybox.h">
       <Filter>EngineAndDXR\Engine</Filter>
     </ClInclude>
+    <ClInclude Include="DX12MeshShader_1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\DXMeshShader.h">
+      <Filter>EngineAndDXR\Engine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -330,6 +339,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Engine\DXSkybox.cpp">
+      <Filter>EngineAndDXR\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="TestFiles\110_mesh_shader_triangle_d3d12.cpp">
+      <Filter>TestFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="DX12MeshShader_1.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\DXMeshShader.cpp">
       <Filter>EngineAndDXR\Engine</Filter>
     </ClCompile>
   </ItemGroup>

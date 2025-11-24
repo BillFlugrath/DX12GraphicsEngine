@@ -27,7 +27,7 @@ public:
 	void SetWorldMatrix(const XMMATRIX &world) {m_WorldMatrix = world;}
 
 	 void Update(DXCamera *pCamera=nullptr);
-	 void Init(ComPtr<ID3D12Device>& pd3dDevice, ComPtr<ID3D12CommandQueue> & commandQueue, ComPtr<ID3D12DescriptorHeap>& m_pCBVSRVHeap,
+	 virtual void Init(ComPtr<ID3D12Device>& pd3dDevice, ComPtr<ID3D12CommandQueue> & commandQueue, ComPtr<ID3D12DescriptorHeap>& m_pCBVSRVHeap,
 		 int cbDescriptorIndex,
 		 CD3DX12_VIEWPORT Viewport,
 		 CD3DX12_RECT ScissorRect );

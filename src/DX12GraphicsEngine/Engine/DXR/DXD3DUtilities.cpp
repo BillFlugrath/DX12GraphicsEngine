@@ -150,6 +150,9 @@ void DXD3DUtilities::Create_SwapChain(D3D12Global& d3d, HWND window)
 
 	IDXGISwapChain1* swapChain;
 
+	// It is recommended to always use the tearing flag when it is available.
+	desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING ;
+
 	// Create the swap chain
 	HRESULT hr = d3d.factory->CreateSwapChainForHwnd(d3d.cmdQueue, window, &desc, nullptr, nullptr, &swapChain);
 	Utils::Validate(hr, L"Error: failed to create swap chain!");

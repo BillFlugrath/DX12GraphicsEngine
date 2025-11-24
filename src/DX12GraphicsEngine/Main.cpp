@@ -14,6 +14,8 @@
 #include "DX12Raytracing_2.h" 
 #include "D3D12PointCloudApp_4.h"
 #include "DX12Raytracing_Inline_1.h"
+#include "DX12MeshShader_1.h"
+
 
 _Use_decl_annotations_
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
@@ -30,9 +32,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
         DX12Raytracing_2 sample(512, 512, L"D3D12 Raytracing 2");
         return Win32Application::Run(&sample, hInstance, nCmdShow);
     }
-    else
+    else if (appIndex == 2)
     {
         DX12Raytracing_Inline_1 sample(512, 512, L"D3D12 Raytracing Inline 1");
         return Win32Application::Run(&sample, hInstance, nCmdShow);
+    }
+    else
+    {
+        DX12MeshShader_1 sample(512, 512, L"D3D12 Mesh Shader 1");  //NOT DONE!!
+        return Win32Application::Run(&sample, hInstance, nCmdShow); 
     }
 }

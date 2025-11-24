@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\Packages\Microsoft.Direct3D.D3D12.1.618.3\build\native\Microsoft.Direct3D.D3D12.props" Condition="Exists('..\..\..\..\Packages\Microsoft.Direct3D.D3D12.1.618.3\build\native\Microsoft.Direct3D.D3D12.props')" />
   <Import Project="..\..\..\..\Packages\Microsoft.Direct3D.DXC.1.8.2505.32\build\native\Microsoft.Direct3D.DXC.props" Condition="Exists('..\..\..\..\Packages\Microsoft.Direct3D.DXC.1.8.2505.32\build\native\Microsoft.Direct3D.DXC.props')" />
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -16,7 +17,7 @@
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>DX12GraphicsEngine</RootNamespace>
     <ProjectName>DX12GraphicsEngine</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.22621.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -171,6 +172,7 @@ xcopy /y  ".\RequiredDlls\dxil.dll"  ".\bin\x64\Release\dxil.dll"</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="D3D12PointCloudApp_4.h" />
+    <ClInclude Include="DX12MeshShader_1.h" />
     <ClInclude Include="DX12Raytracing_2.h" />
     <ClInclude Include="DX12Raytracing_Inline_1.h" />
     <ClInclude Include="Engine\d3dUtil.h" />
@@ -185,6 +187,7 @@ xcopy /y  ".\RequiredDlls\dxil.dll"  ".\bin\x64\Release\dxil.dll"</Command>
     <ClInclude Include="Engine\DXDescriptorHeap.h" />
     <ClInclude Include="Engine\DXGraphicsUtilities.h" />
     <ClInclude Include="Engine\DXMesh.h" />
+    <ClInclude Include="Engine\DXMeshShader.h" />
     <ClInclude Include="Engine\DXModel.h" />
     <ClInclude Include="Engine\DXPointCloud.h" />
     <ClInclude Include="Engine\DXR\BLAS_TLAS_Utilities.h" />
@@ -224,6 +227,7 @@ xcopy /y  ".\RequiredDlls\dxil.dll"  ".\bin\x64\Release\dxil.dll"</Command>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="D3D12PointCloudApp_4.cpp" />
+    <ClCompile Include="DX12MeshShader_1.cpp" />
     <ClCompile Include="DX12Raytracing_2.cpp" />
     <ClCompile Include="DX12Raytracing_Inline_1.cpp" />
     <ClCompile Include="Engine\d3dUtil.cpp" />
@@ -238,6 +242,7 @@ xcopy /y  ".\RequiredDlls\dxil.dll"  ".\bin\x64\Release\dxil.dll"</Command>
     <ClCompile Include="Engine\DXDescriptorHeap.cpp" />
     <ClCompile Include="Engine\DXGraphicsUtilities.cpp" />
     <ClCompile Include="Engine\DXMesh.cpp" />
+    <ClCompile Include="Engine\DXMeshShader.cpp" />
     <ClCompile Include="Engine\DXModel.cpp" />
     <ClCompile Include="Engine\DXPointCloud.cpp" />
     <ClCompile Include="Engine\DXR\BLAS_TLAS_Utilities.cpp" />
@@ -258,6 +263,10 @@ xcopy /y  ".\RequiredDlls\dxil.dll"  ".\bin\x64\Release\dxil.dll"</Command>
     <ClCompile Include="Engine\DXTexture.cpp" />
     <ClCompile Include="Engine\DXTexturedQuad.cpp" />
     <ClCompile Include="Engine\lodepng.cpp" />
+    <ClCompile Include="TestFiles\110_mesh_shader_triangle_d3d12.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Win32Application.cpp" />
     <ClCompile Include="DXSample.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -314,6 +323,7 @@ xcopy /y  ".\RequiredDlls\dxil.dll"  ".\bin\x64\Release\dxil.dll"</Command>
     <Import Project="..\..\..\..\..\Packages\zlib-vc140-static-64.1.2.11\build\native\zlib-vc140-static-64.targets" Condition="Exists('..\..\..\..\..\Packages\zlib-vc140-static-64.1.2.11\build\native\zlib-vc140-static-64.targets')" />
     <Import Project="..\..\..\..\..\Packages\WinPixEventRuntime.1.0.240308001\build\WinPixEventRuntime.targets" Condition="Exists('..\..\..\..\..\Packages\WinPixEventRuntime.1.0.240308001\build\WinPixEventRuntime.targets')" />
     <Import Project="..\..\..\..\Packages\Microsoft.Direct3D.DXC.1.8.2505.32\build\native\Microsoft.Direct3D.DXC.targets" Condition="Exists('..\..\..\..\Packages\Microsoft.Direct3D.DXC.1.8.2505.32\build\native\Microsoft.Direct3D.DXC.targets')" />
+    <Import Project="..\..\..\..\Packages\Microsoft.Direct3D.D3D12.1.618.3\build\native\Microsoft.Direct3D.D3D12.targets" Condition="Exists('..\..\..\..\Packages\Microsoft.Direct3D.D3D12.1.618.3\build\native\Microsoft.Direct3D.D3D12.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -323,5 +333,7 @@ xcopy /y  ".\RequiredDlls\dxil.dll"  ".\bin\x64\Release\dxil.dll"</Command>
     <Error Condition="!Exists('..\..\..\..\..\Packages\WinPixEventRuntime.1.0.240308001\build\WinPixEventRuntime.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\..\Packages\WinPixEventRuntime.1.0.240308001\build\WinPixEventRuntime.targets'))" />
     <Error Condition="!Exists('..\..\..\..\Packages\Microsoft.Direct3D.DXC.1.8.2505.32\build\native\Microsoft.Direct3D.DXC.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\Packages\Microsoft.Direct3D.DXC.1.8.2505.32\build\native\Microsoft.Direct3D.DXC.props'))" />
     <Error Condition="!Exists('..\..\..\..\Packages\Microsoft.Direct3D.DXC.1.8.2505.32\build\native\Microsoft.Direct3D.DXC.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\Packages\Microsoft.Direct3D.DXC.1.8.2505.32\build\native\Microsoft.Direct3D.DXC.targets'))" />
+    <Error Condition="!Exists('..\..\..\..\Packages\Microsoft.Direct3D.D3D12.1.618.3\build\native\Microsoft.Direct3D.D3D12.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\Packages\Microsoft.Direct3D.D3D12.1.618.3\build\native\Microsoft.Direct3D.D3D12.props'))" />
+    <Error Condition="!Exists('..\..\..\..\Packages\Microsoft.Direct3D.D3D12.1.618.3\build\native\Microsoft.Direct3D.D3D12.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\Packages\Microsoft.Direct3D.D3D12.1.618.3\build\native\Microsoft.Direct3D.D3D12.targets'))" />
   </Target>
 </Project>
