@@ -215,7 +215,22 @@ void DX12MeshShader_1::OnInit()
 	InitRayTracing();
 
 	//DXMeshShader init
-	m_pDXMeshShader->Init(m_device, m_commandQueue, descriptor_heap_srv_->GetDescriptorHeap(), quad_viewport, quad_scissor);
+	std::wstring meshShaderFilename = L"assets/shaders/TriangleMeshShader.hlsl";
+	bool bUseEmbeddedRootSig = false;
+
+	static bool bUseMeshlets = true; //toggle meshlets on instead of hardcoded triangle
+	if (bUseMeshlets)
+	{
+		meshShaderFilename = L"assets/shaders/MeshShader.hlsl";
+		bUseEmbeddedRootSig = true;
+	}
+	
+	std::wstring meshletFilename = L"./assets/meshlets/cube3.bin";
+	m_pDXMeshShader->Init(m_device, m_commandQueue, descriptor_heap_srv_->GetDescriptorHeap(), quad_viewport, 
+		quad_scissor, meshShaderFilename, meshletFilename, bUseEmbeddedRootSig);
+
+	const std::wstring kTestPngFile_1 = L"C:./assets/textures/Countdown_01.png";
+	m_pDXMeshShader->AddTexture(kTestPngFile_1, m_device, m_commandQueue, descriptor_heap_srv_);
 }
 
 void DX12MeshShader_1::LoadMainSceneModelsAndTextures(const CD3DX12_VIEWPORT& quad_viewport, const CD3DX12_RECT& quad_scissor)

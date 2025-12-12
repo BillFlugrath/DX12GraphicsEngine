@@ -23,8 +23,6 @@ struct D3DSceneModels;
 struct D3DSceneTextures;
 class DXMeshShader;
 
-//------------------------------- NOT DONE!!-------------------------------------------
-
 class DX12MeshShader_1 : public DXSample
 {
 public:

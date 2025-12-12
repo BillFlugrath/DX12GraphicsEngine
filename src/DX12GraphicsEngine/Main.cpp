@@ -20,7 +20,7 @@
 _Use_decl_annotations_
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
-    uint32_t appIndex = 1;
+    uint32_t appIndex = 2;
 
     if (appIndex == 0)
     {
@@ -39,7 +39,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
     }
     else
     {
-        DX12MeshShader_1 sample(512, 512, L"D3D12 Mesh Shader 1");  //NOT DONE!!
+        DX12MeshShader_1 sample(512, 512, L"D3D12 Mesh Shader 1");  
         return Win32Application::Run(&sample, hInstance, nCmdShow); 
     }
 }

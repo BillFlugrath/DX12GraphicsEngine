@@ -4,6 +4,7 @@
 #include "DXMesh.h"
 #include "DXTexture.h"
 #include "DXDescriptorHeap.h"
+#include "DXCamera.h"
 
 #include "./DXR/DXShaderUtilities.h"
 #include "./DXR/DXD3DUtilities.h"
@@ -23,22 +24,33 @@ DXMeshShader::~DXMeshShader()
 }
 
 void DXMeshShader::Init(ComPtr<ID3D12Device>& pd3dDevice, ComPtr<ID3D12CommandQueue>& commandQueue, ComPtr<ID3D12DescriptorHeap>& pCBVSRVHeap,
-	CD3DX12_VIEWPORT Viewport,CD3DX12_RECT ScissorRect)
+	CD3DX12_VIEWPORT Viewport,CD3DX12_RECT ScissorRect, const std::wstring& shaderFileName, 
+	const std::wstring& meshletFileName, bool bUseEmbeddedRootSig)
 {
 
 	m_pd3dDevice = pd3dDevice;
+	m_bUseShaderEmbeddedRootSig = bUseEmbeddedRootSig;
 
 	ThrowIfFailed(m_pd3dDevice->QueryInterface(IID_PPV_ARGS(&m_pd3dDevice2)), L"Couldn't get interface for the device.\n");
 
 	m_cbvSrvHeap = pCBVSRVHeap;
-//	m_cbDescriptorIndex = cbDescriptorIndex;
 
 	m_Viewport = Viewport;
 	m_ScissorRect = ScissorRect;
+	m_ShaderFilename = shaderFileName;
+	m_MeshletFilename = meshletFileName;
 
 	CreateD3DResources(commandQueue);
+	//CreateGlobalRootSignature();
 
-	CreateGlobalRootSignature();
+	CreateMeshlets(commandQueue);
+
+}
+
+void DXMeshShader::ShaderEntryPoint(const std::wstring& meshShaderEntryPoint, const std::wstring& pixelShaderEntryPoint)
+{
+	m_MeshShaderEntryPoint = meshShaderEntryPoint;
+	m_PixelShaderEntryPoint = pixelShaderEntryPoint;
 }
 
 void DXMeshShader::CreateGlobalRootSignature()
@@ -52,19 +64,52 @@ void DXMeshShader::CreateGlobalRootSignature()
 		0,                         // nodeMask
 		blob->GetBufferPointer(),  // pBloblWithRootSignature
 		blob->GetBufferSize(),     // blobLengthInBytes
-		IID_PPV_ARGS(&rootSig))); // riid, ppvRootSignature
+		IID_PPV_ARGS(&m_TempRootSig))); // riid, ppvRootSignature
 }
 
 void DXMeshShader::CreateD3DResources(ComPtr<ID3D12CommandQueue>& commandQueue)
 {
-	CreateRootSignature();
+
+	if (!m_bUseShaderEmbeddedRootSig)
+		CreateRootSignature();
 	
-	CreatePipelineState(); //sky box shader
+	CreatePipelineState(); 
 	
 	m_cbvSrvDescriptorSize = m_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
+	CreateConstantBuffer();
 }
 
+void DXMeshShader::CreateConstantBuffer()
+{
+	// Create the constant buffer.
+	{
+		const UINT64 constantBufferSize = sizeof(SceneConstantBuffer);
+
+		const CD3DX12_HEAP_PROPERTIES constantBufferHeapProps(D3D12_HEAP_TYPE_UPLOAD);
+		const CD3DX12_RESOURCE_DESC constantBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(constantBufferSize);
+
+		ThrowIfFailed(m_pd3dDevice->CreateCommittedResource(
+			&constantBufferHeapProps,
+			D3D12_HEAP_FLAG_NONE,
+			&constantBufferDesc,
+			D3D12_RESOURCE_STATE_GENERIC_READ,
+			nullptr,
+			IID_PPV_ARGS(&m_constantBuffer)));
+
+		// Describe and create a constant buffer view.
+		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+		cbvDesc.BufferLocation = m_constantBuffer->GetGPUVirtualAddress();
+		cbvDesc.SizeInBytes = constantBufferSize;
+
+		// Map and initialize the constant buffer. We don't unmap this until the
+		// app closes. Keeping things mapped for the lifetime of the resource is okay.
+		CD3DX12_RANGE readRange(0, 0);        // We do not intend to read from this resource on the CPU.
+		ThrowIfFailed(m_constantBuffer->Map(0, &readRange, reinterpret_cast<void**>(&m_cbvDataBegin)));
+	}
+}
+
+//TODO this loads an obj file, not meshlet.  Either change or remove function.
 void DXMeshShader::LoadModelAndTexture(const std::string& modelFileName, const std::wstring& strTextureFullPath,
 	ComPtr<ID3D12Device>& pd3dDevice, ComPtr<ID3D12CommandQueue>& pCommandQueue,
 	std::shared_ptr<DXDescriptorHeap>& descriptor_heap_srv, const CD3DX12_VIEWPORT& Viewport,
@@ -91,6 +136,16 @@ void DXMeshShader::LoadModelAndTexture(const std::string& modelFileName, const s
 
 }
 
+void  DXMeshShader::AddTexture(const std::wstring& strTextureFullPath, ComPtr<ID3D12Device>& pd3dDevice, ComPtr<ID3D12CommandQueue>& pCommandQueue, std::shared_ptr<DXDescriptorHeap>& descriptor_heap_srv)
+{
+	m_DXTexture = std::make_shared<DXTexture>();
+
+	int descriptor_index = descriptor_heap_srv->GetNewDescriptorIndex(); //index into descriptor heap cb_descriptor_index 
+	bool bLoaded = m_DXTexture->CreateTextureFromFile(pd3dDevice, pCommandQueue, descriptor_heap_srv->GetDescriptorHeap(), strTextureFullPath, descriptor_index);
+
+	assert(bLoaded);
+}
+
 void DXMeshShader::CreatePipelineState()
 {
 	//if (m_pMeshShaderPipelineState)
@@ -98,10 +153,6 @@ void DXMeshShader::CreatePipelineState()
 
 	// Create the pipeline state, which includes compiling and loading shaders.
 	{
-		ComPtr<ID3DBlob> objModelVertexShader;
-		ComPtr<ID3DBlob> objModelPixelShader;
-		ComPtr<ID3DBlob> error;
-
 #if defined(_DEBUG)
 		// Enable better shader debugging with the graphics debugging tools.
 		UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
@@ -113,23 +164,28 @@ void DXMeshShader::CreatePipelineState()
 		D3D12ShaderCompilerInfo shaderCompiler;
 		DXShaderUtilities shaderUtils;
 
-		//load shader files from disk
+		//load and compile shader files from disk
 		
 		shaderUtils.Init_Shader_Compiler(shaderCompiler);
 
-		D3D12ShaderInfo infoVS(L"assets/shaders/MeshShader.hlsl", L"msmain", L"ms_6_6");
+		D3D12ShaderInfo infoVS(m_ShaderFilename.c_str(), m_MeshShaderEntryPoint.c_str(), L"ms_6_6");
 		shaderUtils.Compile_Shader(shaderCompiler, infoVS, &vsBlob);
 
-		D3D12ShaderInfo infoPS(L"assets/shaders/MeshShader.hlsl", L"psmain", L"ps_6_6");
+		D3D12ShaderInfo infoPS(m_ShaderFilename.c_str(), m_PixelShaderEntryPoint.c_str(), L"ps_6_6");
 		shaderUtils.Compile_Shader(shaderCompiler, infoPS, &psBlob);
 
+		// Pull root signature from the precompiled mesh shader.
+		if (m_bUseShaderEmbeddedRootSig)
+		{
+			ThrowIfFailed(m_pd3dDevice->CreateRootSignature(0, vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(),
+				IID_PPV_ARGS(&m_pMeshShaderRootSignature)));
+		}
+		
 		//shaderUtils.Destroy(shaderCompiler);
 		
-		
-	
 		// Describe and create the graphics pipeline state objects (PSOs).
 		D3DX12_MESH_SHADER_PIPELINE_STATE_DESC psoDesc = {};
-		psoDesc.pRootSignature = m_pRootSignature.Get();
+		psoDesc.pRootSignature = m_pMeshShaderRootSignature.Get();
 		
 		psoDesc.MS.BytecodeLength = vsBlob->GetBufferSize();
 		psoDesc.MS.pShaderBytecode = vsBlob->GetBufferPointer();
@@ -161,12 +217,13 @@ void DXMeshShader::CreatePipelineState()
 
 		ThrowIfFailed(m_pd3dDevice2->CreatePipelineState(&steamDesc, IID_PPV_ARGS(&m_pMeshShaderPipelineState)));
 		NAME_D3D12_OBJECT(m_pMeshShaderPipelineState);
+
 	}
 }
 
 void DXMeshShader::CreateRootSignature()
 {
-	//if (m_pRootSignature)
+	//if (m_pMeshShaderRootSignature)
 	//	return;
 
 	D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
@@ -262,7 +319,7 @@ void DXMeshShader::CreateRootSignature()
 			serializedRootSig.GetAddressOf(), errorBlob.GetAddressOf()));
 
 		// ThrowIfFailed(D3DX12SerializeVersionedRootSignature(&rootSignatureDesc, featureData.HighestVersion, &signature, &error));
-		ThrowIfFailed(m_pd3dDevice->CreateRootSignature(0, serializedRootSig->GetBufferPointer(), serializedRootSig->GetBufferSize(), IID_PPV_ARGS(&m_pRootSignature)));
+		ThrowIfFailed(m_pd3dDevice->CreateRootSignature(0, serializedRootSig->GetBufferPointer(), serializedRootSig->GetBufferSize(), IID_PPV_ARGS(&m_pMeshShaderRootSignature)));
 
 	}
 }
@@ -270,13 +327,19 @@ void DXMeshShader::CreateRootSignature()
 void DXMeshShader::Render(ComPtr<ID3D12GraphicsCommandList>& pGraphicsCommandList, const DirectX::XMMATRIX& view,
 	const DirectX::XMMATRIX& proj, std::vector<DXGraphicsUtilities::SrvParameter>& rootSrvParams)
 {
+	static bool bUseNewFunction = true;
+	if (bUseNewFunction)
+	{
+		RenderMeshlets(pGraphicsCommandList, view,proj,rootSrvParams);
+		return;
+	}
 
 	ComPtr<ID3D12GraphicsCommandList6> pCommandList;
-	ThrowIfFailed(pGraphicsCommandList->QueryInterface(IID_PPV_ARGS(&pCommandList)), L"Couldn't get interface for the device.\n");
+	ThrowIfFailed(pGraphicsCommandList->QueryInterface(IID_PPV_ARGS(&pCommandList)), L"Couldn't get interface for the command list.\n");
 
-
+	//set pipeline and signature
 	pCommandList->SetPipelineState(m_pMeshShaderPipelineState.Get());
-	pCommandList->SetGraphicsRootSignature(m_pRootSignature.Get());
+	pCommandList->SetGraphicsRootSignature(m_pMeshShaderRootSignature.Get());
 
 	ID3D12DescriptorHeap* ppHeaps[] = { m_cbvSrvHeap.Get() };
 	pCommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
@@ -295,7 +358,120 @@ void DXMeshShader::Render(ComPtr<ID3D12GraphicsCommandList>& pGraphicsCommandLis
 	//m_pDXMesh->Render(pCommandList, m_WorldMatrix, wvp);
 }
 
+void DXMeshShader::RenderMeshlets(ComPtr<ID3D12GraphicsCommandList>& pGraphicsCommandList, const DirectX::XMMATRIX& view,
+	const DirectX::XMMATRIX& proj, std::vector<DXGraphicsUtilities::SrvParameter>& rootSrvParams)
+{
+	ComPtr<ID3D12GraphicsCommandList6> pCommandList;
+	ThrowIfFailed(pGraphicsCommandList->QueryInterface(IID_PPV_ARGS(&pCommandList)), L"Couldn't get interface for the command list.\n");
+
+	//set pipeline and signature
+	pCommandList->SetPipelineState(m_pMeshShaderPipelineState.Get());
+	pCommandList->SetGraphicsRootSignature(m_pMeshShaderRootSignature.Get());
+
+	//this descriptor heap is not required to draw the original mesh since all of the shader views are set directly
+	//with the GPU virtual address since they are buffers not textures.  We do need the descriptor heap for actual texture
+	//srvs however.
+	ID3D12DescriptorHeap* ppHeaps[] = { m_cbvSrvHeap.Get() };
+	pCommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+
+	//for (auto param : rootSrvParams)
+	//{
+		//pCommandList->SetGraphicsRootDescriptorTable(param.mRootParamIndex, param.mHandle);
+	//}
+
+	if (m_DXTexture != nullptr)
+	{
+		CD3DX12_GPU_DESCRIPTOR_HANDLE texHandle = m_DXTexture->GetSrvGPUDescriptorHandle(m_pd3dDevice);
+		int root_parameter = 6;
+		pCommandList->SetGraphicsRootDescriptorTable(root_parameter, texHandle);
+	}
+	
+
+	//set the constant buffer address directly instead of using a table (ie instead of a GPU handle).  sets b0
+	pCommandList->SetGraphicsRootConstantBufferView(0, m_constantBuffer->GetGPUVirtualAddress() );
+
+	XMMATRIX world = XMMATRIX(g_XMIdentityR0, g_XMIdentityR1, g_XMIdentityR2, g_XMIdentityR3);
+	
+	//copy the data into the constant buffer
+	XMStoreFloat4x4(&m_constantBufferData.World, XMMatrixTranspose(world));
+	XMStoreFloat4x4(&m_constantBufferData.WorldView, XMMatrixTranspose(world * view));
+	XMStoreFloat4x4(&m_constantBufferData.WorldViewProj, XMMatrixTranspose(world * view * proj));
+	m_constantBufferData.DrawMeshlets = true;
+
+	memcpy(m_cbvDataBegin, &m_constantBufferData, sizeof(m_constantBufferData));
+
+	for (auto& mesh : m_Model)
+	{
+		//Note: register b1 is set with two seperate 32 bit constants via SetGraphicsRoot32BitConstant(0, data, offset)
+		pCommandList->SetGraphicsRoot32BitConstant(1, mesh.IndexSize, 0); //b0 at offset 0
+
+		pCommandList->SetGraphicsRootShaderResourceView(2, mesh.VertexResources[0]->GetGPUVirtualAddress()); //t0
+		pCommandList->SetGraphicsRootShaderResourceView(3, mesh.MeshletResource->GetGPUVirtualAddress()); //t1
+		pCommandList->SetGraphicsRootShaderResourceView(4, mesh.UniqueVertexIndexResource->GetGPUVirtualAddress()); //t2
+		pCommandList->SetGraphicsRootShaderResourceView(5, mesh.PrimitiveIndexResource->GetGPUVirtualAddress()); //t3
+
+		for (auto& subset : mesh.MeshletSubsets)
+		{
+			pCommandList->SetGraphicsRoot32BitConstant(1, subset.Offset, 1);//b0 at offset 1 ie last param=1
+			pCommandList->DispatchMesh(subset.Count, 1, 1);
+		}
+	}
+
+}
+
 void DXMeshShader::CreateSRVs(std::shared_ptr<DXDescriptorHeap>& descriptor_heap_srv)
 {
 	
+}
+
+void  DXMeshShader::CreateMeshlets(ComPtr<ID3D12CommandQueue>& commandQueue)
+{
+	ID3D12GraphicsCommandList4* cmdList;
+	ID3D12CommandAllocator* cmdAlloc;
+
+	ThrowIfFailed(m_pd3dDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&cmdAlloc)));
+	ThrowIfFailed(m_pd3dDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, cmdAlloc, nullptr, IID_PPV_ARGS(&cmdList)));
+
+
+	m_Model.LoadFromFile(m_MeshletFilename.c_str());
+	m_Model.UploadGpuResources(m_pd3dDevice.Get(), commandQueue.Get(), cmdAlloc, cmdList);
+
+#ifdef _DEBUG
+	// Mesh shader file expects a certain vertex layout; assert our mesh conforms to that layout.
+	const D3D12_INPUT_ELEMENT_DESC c_elementDescs[3] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 1 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 1 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 1 },
+	};
+
+	for (auto& mesh : m_Model)
+	{
+		UINT numVertexAttributes = 3; //BillF added "3" instead of "2" to support texcoord after normals
+		assert(mesh.LayoutDesc.NumElements == numVertexAttributes);
+
+		for (uint32_t i = 0; i < _countof(c_elementDescs); ++i)
+			assert(std::memcmp(&mesh.LayoutElems[i], &c_elementDescs[i], sizeof(D3D12_INPUT_ELEMENT_DESC)) == 0);
+	}
+#endif
+
+	//The UploadGpuResources closes the command list and submits the command queue to the gpu, thus we don't need to
+	//do it again.
+	
+	/*
+	ThrowIfFailed(cmdList->Close());
+	ID3D12CommandList* ppCommandLists[] = { cmdList };
+	commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+		*/
+
+
+	//ComPtr<ID3D12Device> pDevice(m_pd3dDevice);
+	//DXGraphicsUtilities::WaitForGpu(pDevice, commandQueue);
+
+
+	if (cmdList)
+		cmdList->Release();
+
+	if (cmdAlloc)
+		cmdAlloc->Release();
 }

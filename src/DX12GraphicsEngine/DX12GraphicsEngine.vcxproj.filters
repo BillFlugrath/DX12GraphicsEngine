@@ -350,6 +350,9 @@
     <ClCompile Include="Engine\DXMeshShader.cpp">
       <Filter>EngineAndDXR\Engine</Filter>
     </ClCompile>
+    <ClCompile Include="TestFiles\111_mesh_shader_meshlets_d3d12.cpp">
+      <Filter>TestFiles</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -375,6 +378,15 @@
     </FxCompile>
     <FxCompile Include="Engine\DXR\assets\shaders\RayCone.hlsl">
       <Filter>EngineAndDXR\DXR\assets\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="assets\shaders\TriangleMeshShader.hlsl">
+      <Filter>assets\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="TestFiles\shaders.hlsl">
+      <Filter>TestFiles</Filter>
+    </FxCompile>
+    <FxCompile Include="assets\shaders\MeshShader.hlsl">
+      <Filter>assets\shaders</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
