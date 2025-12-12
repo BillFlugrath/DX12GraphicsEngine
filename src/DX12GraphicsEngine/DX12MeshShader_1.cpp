@@ -225,12 +225,38 @@ void DX12MeshShader_1::OnInit()
 		bUseEmbeddedRootSig = true;
 	}
 	
-	std::wstring meshletFilename = L"./assets/meshlets/cube3.bin";
+	std::wstring meshletFilename = L"./assets/meshlets/teapot1.bin";
 	m_pDXMeshShader->Init(m_device, m_commandQueue, descriptor_heap_srv_->GetDescriptorHeap(), quad_viewport, 
 		quad_scissor, meshShaderFilename, meshletFilename, bUseEmbeddedRootSig);
 
 	const std::wstring kTestPngFile_1 = L"C:./assets/textures/Countdown_01.png";
 	m_pDXMeshShader->AddTexture(kTestPngFile_1, m_device, m_commandQueue, descriptor_heap_srv_);
+
+
+	ID3D12GraphicsCommandList4* cmdList;
+	ID3D12CommandAllocator* cmdAlloc;
+
+	ThrowIfFailed(m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&cmdAlloc)));
+	ThrowIfFailed(m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, cmdAlloc, nullptr, IID_PPV_ARGS(&cmdList)));
+
+	cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_pDXMeshShader->GetDXTexture()->GetDX12Resource().Get(),
+		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+
+
+	ThrowIfFailed(cmdList->Close());
+	ID3D12CommandList* ppCommandLists[] = { cmdList };
+	m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+
+	ComPtr<ID3D12Device> pDevice(m_device);
+	DXGraphicsUtilities::WaitForGpu(pDevice, m_commandQueue);
+
+	if (cmdList)
+		cmdList->Release();
+
+	if (cmdAlloc)
+		cmdAlloc->Release();
+
+
 }
 
 void DX12MeshShader_1::LoadMainSceneModelsAndTextures(const CD3DX12_VIEWPORT& quad_viewport, const CD3DX12_RECT& quad_scissor)
