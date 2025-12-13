@@ -168,7 +168,7 @@ float4 psmain(VertexOut input) : SV_TARGET
     float2 uv = input.TexCoord0;
     uv.y = 1.0f - uv.y;
     float4 texColor = g_Texture.Sample(g_SamplerState, uv);
-    return texColor;
+//    return texColor;
 
     float ambientIntensity = 0.1;
     float3 lightColor = float3(1, 1, 1);
@@ -184,6 +184,7 @@ float4 psmain(VertexOut input) : SV_TARGET
             float(meshletIndex & 3) / 4,
             float(meshletIndex & 7) / 8);
         shininess = 16.0;
+        return float4(diffuseColor, 1);
     }
     else
     {

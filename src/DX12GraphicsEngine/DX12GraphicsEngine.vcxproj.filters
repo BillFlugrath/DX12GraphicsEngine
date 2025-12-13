@@ -231,6 +231,10 @@
     <ClInclude Include="Engine\DXMeshShader.h">
       <Filter>EngineAndDXR\Engine</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\Span.h" />
+    <ClInclude Include="Engine\MeshShaderModel.h">
+      <Filter>EngineAndDXR\Engine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -352,6 +356,9 @@
     </ClCompile>
     <ClCompile Include="TestFiles\111_mesh_shader_meshlets_d3d12.cpp">
       <Filter>TestFiles</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\MeshShaderModel.cpp">
+      <Filter>EngineAndDXR\Engine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

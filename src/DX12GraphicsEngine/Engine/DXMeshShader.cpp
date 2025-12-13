@@ -159,7 +159,7 @@ void DXMeshShader::CreatePipelineState()
 #else
 		UINT compileFlags = 0;
 #endif
-		IDxcBlob* vsBlob = nullptr;
+		IDxcBlob* msBlob = nullptr;
 		IDxcBlob* psBlob = nullptr;
 		D3D12ShaderCompilerInfo shaderCompiler;
 		DXShaderUtilities shaderUtils;
@@ -169,7 +169,7 @@ void DXMeshShader::CreatePipelineState()
 		shaderUtils.Init_Shader_Compiler(shaderCompiler);
 
 		D3D12ShaderInfo infoVS(m_ShaderFilename.c_str(), m_MeshShaderEntryPoint.c_str(), L"ms_6_6");
-		shaderUtils.Compile_Shader(shaderCompiler, infoVS, &vsBlob);
+		shaderUtils.Compile_Shader(shaderCompiler, infoVS, &msBlob);
 
 		D3D12ShaderInfo infoPS(m_ShaderFilename.c_str(), m_PixelShaderEntryPoint.c_str(), L"ps_6_6");
 		shaderUtils.Compile_Shader(shaderCompiler, infoPS, &psBlob);
@@ -177,7 +177,7 @@ void DXMeshShader::CreatePipelineState()
 		// Pull root signature from the precompiled mesh shader.
 		if (m_bUseShaderEmbeddedRootSig)
 		{
-			ThrowIfFailed(m_pd3dDevice->CreateRootSignature(0, vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(),
+			ThrowIfFailed(m_pd3dDevice->CreateRootSignature(0, msBlob->GetBufferPointer(), msBlob->GetBufferSize(),
 				IID_PPV_ARGS(&m_pMeshShaderRootSignature)));
 		}
 		
@@ -187,8 +187,8 @@ void DXMeshShader::CreatePipelineState()
 		D3DX12_MESH_SHADER_PIPELINE_STATE_DESC psoDesc = {};
 		psoDesc.pRootSignature = m_pMeshShaderRootSignature.Get();
 		
-		psoDesc.MS.BytecodeLength = vsBlob->GetBufferSize();
-		psoDesc.MS.pShaderBytecode = vsBlob->GetBufferPointer();
+		psoDesc.MS.BytecodeLength = msBlob->GetBufferSize();
+		psoDesc.MS.pShaderBytecode = msBlob->GetBufferPointer();
 
 		psoDesc.PS.BytecodeLength = psBlob->GetBufferSize();
 		psoDesc.PS.pShaderBytecode = psBlob->GetBufferPointer();
@@ -403,7 +403,7 @@ void DXMeshShader::RenderMeshlets(ComPtr<ID3D12GraphicsCommandList>& pGraphicsCo
 	for (auto& mesh : m_Model)
 	{
 		//Note: register b1 is set with two seperate 32 bit constants via SetGraphicsRoot32BitConstant(0, data, offset)
-		pCommandList->SetGraphicsRoot32BitConstant(1, mesh.IndexSize, 0); //b0 at offset 0
+		pCommandList->SetGraphicsRoot32BitConstant(1, mesh.IndexSize, 0); //b1 at offset 0
 
 		pCommandList->SetGraphicsRootShaderResourceView(2, mesh.VertexResources[0]->GetGPUVirtualAddress()); //t0
 		pCommandList->SetGraphicsRootShaderResourceView(3, mesh.MeshletResource->GetGPUVirtualAddress()); //t1
@@ -412,7 +412,7 @@ void DXMeshShader::RenderMeshlets(ComPtr<ID3D12GraphicsCommandList>& pGraphicsCo
 
 		for (auto& subset : mesh.MeshletSubsets)
 		{
-			pCommandList->SetGraphicsRoot32BitConstant(1, subset.Offset, 1);//b0 at offset 1 ie last param=1
+			pCommandList->SetGraphicsRoot32BitConstant(1, subset.Offset, 1);//b1 at offset 1 ie last param=1
 			pCommandList->DispatchMesh(subset.Count, 1, 1);
 		}
 	}

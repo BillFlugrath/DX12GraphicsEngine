@@ -225,7 +225,8 @@ void DX12MeshShader_1::OnInit()
 		bUseEmbeddedRootSig = true;
 	}
 	
-	std::wstring meshletFilename = L"./assets/meshlets/teapot1.bin";
+	//std::wstring meshletFilename = L"./assets/meshlets/cube3.bin";
+	std::wstring meshletFilename = L"./assets/meshlets/sphere1.bin";
 	m_pDXMeshShader->Init(m_device, m_commandQueue, descriptor_heap_srv_->GetDescriptorHeap(), quad_viewport, 
 		quad_scissor, meshShaderFilename, meshletFilename, bUseEmbeddedRootSig);
 
@@ -242,21 +243,14 @@ void DX12MeshShader_1::OnInit()
 	cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_pDXMeshShader->GetDXTexture()->GetDX12Resource().Get(),
 		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
 
-
 	ThrowIfFailed(cmdList->Close());
 	ID3D12CommandList* ppCommandLists[] = { cmdList };
 	m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
-	ComPtr<ID3D12Device> pDevice(m_device);
-	DXGraphicsUtilities::WaitForGpu(pDevice, m_commandQueue);
+	DXGraphicsUtilities::WaitForGpu(m_device, m_commandQueue);
 
-	if (cmdList)
-		cmdList->Release();
-
-	if (cmdAlloc)
-		cmdAlloc->Release();
-
-
+	cmdList->Release();
+	cmdAlloc->Release();
 }
 
 void DX12MeshShader_1::LoadMainSceneModelsAndTextures(const CD3DX12_VIEWPORT& quad_viewport, const CD3DX12_RECT& quad_scissor)
