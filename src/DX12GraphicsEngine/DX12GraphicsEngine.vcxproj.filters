@@ -360,6 +360,9 @@
     <ClCompile Include="Engine\MeshShaderModel.cpp">
       <Filter>EngineAndDXR\Engine</Filter>
     </ClCompile>
+    <ClCompile Include="TestFiles\112_mesh_shader_amplification_d3d12.cpp">
+      <Filter>TestFiles</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -389,10 +392,16 @@
     <FxCompile Include="assets\shaders\TriangleMeshShader.hlsl">
       <Filter>assets\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="TestFiles\shaders.hlsl">
+    <FxCompile Include="TestFiles\shaders_111.hlsl">
       <Filter>TestFiles</Filter>
     </FxCompile>
     <FxCompile Include="assets\shaders\MeshShader.hlsl">
+      <Filter>assets\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="TestFiles\shaders_112.hlsl">
+      <Filter>TestFiles</Filter>
+    </FxCompile>
+    <FxCompile Include="assets\shaders\AmplificationAndMeshShader.hlsl">
       <Filter>assets\shaders</Filter>
     </FxCompile>
   </ItemGroup>

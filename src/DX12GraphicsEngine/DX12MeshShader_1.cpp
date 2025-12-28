@@ -218,17 +218,24 @@ void DX12MeshShader_1::OnInit()
 	std::wstring meshShaderFilename = L"assets/shaders/TriangleMeshShader.hlsl";
 	bool bUseEmbeddedRootSig = false;
 
-	static bool bUseMeshlets = true; //toggle meshlets on instead of hardcoded triangle
-	if (bUseMeshlets)
+	static bool bUseMeshletsOnly = false; //toggle meshlets on instead of hardcoded triangle
+	static bool bUseAmplicationShader= true;
+	if (bUseMeshletsOnly)
 	{
 		meshShaderFilename = L"assets/shaders/MeshShader.hlsl";
 		bUseEmbeddedRootSig = true;
 	}
+	else if (bUseAmplicationShader)
+	{
+		meshShaderFilename = L"assets/shaders/AmplificationAndMeshShader.hlsl";
+		bUseEmbeddedRootSig = true;
+	}
+
 	
 	//std::wstring meshletFilename = L"./assets/meshlets/cube3.bin";
 	std::wstring meshletFilename = L"./assets/meshlets/sphere1.bin";
 	m_pDXMeshShader->Init(m_device, m_commandQueue, descriptor_heap_srv_->GetDescriptorHeap(), quad_viewport, 
-		quad_scissor, meshShaderFilename, meshletFilename, bUseEmbeddedRootSig);
+		quad_scissor, meshShaderFilename, meshletFilename, bUseEmbeddedRootSig, bUseAmplicationShader);
 
 	const std::wstring kTestPngFile_1 = L"C:./assets/textures/Countdown_01.png";
 	m_pDXMeshShader->AddTexture(kTestPngFile_1, m_device, m_commandQueue, descriptor_heap_srv_);
@@ -350,7 +357,7 @@ void DX12MeshShader_1::LoadPipeline()
         ComPtr<ID3D12Debug> debugController;
         if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
         {
-            debugController->EnableDebugLayer();
+           // debugController->EnableDebugLayer();  //interferes with NSight Shader Profiler
 
             // Enable additional debug layers.
             dxgiFactoryFlags |= DXGI_CREATE_FACTORY_DEBUG;

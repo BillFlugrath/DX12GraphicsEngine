@@ -192,6 +192,8 @@ HRESULT MeshShaderModel::LoadFromFile(const wchar_t* filename)
         mesh.LayoutDesc.pInputElementDescs = mesh.LayoutElems;
         mesh.LayoutDesc.NumElements = 0;
 
+        //Attribute is a struct that has enum, enum EType : uint32_t{ Position, Normal,TexCoord, .... } ie we iterate
+        //through all of the vertex attributes and check if the attribute exists (i.e != -1)
         for (uint32_t j = 0; j < Attribute::Count; ++j)
         {
             if (meshView.Attributes[j] == -1)
@@ -331,7 +333,18 @@ HRESULT MeshShaderModel::UploadGpuResources(ID3D12Device* device, ID3D12CommandQ
 {
     for (uint32_t i = 0; i < m_meshes.size(); ++i)
     {
+        // m is a "Mesh" struct
         auto& m = m_meshes[i];
+
+        // Span<Meshlet>              Meshlets; thus "Meshlets" is an array of Meshlets.  For ex, a sphere1.bin has 33 meshlets.
+        /*The meshlets are stored in an array.  The array used is a Span<Meshlet>.  Thus, data[0]=meshlet 0, data[1]=meshlet 1 etc.  An examplefor each
+        element in the Meshlet array is:
+        data[0].VertCount=63 data[0].VertOffset=0  data[0].PrimCount=21  data[0].PrimOffset=0
+        data[1].VertCount=64 data[1].VertOffset=63  data[1].PrimCount=30  data[1].PrimOffset=21
+        data[2].VertCount=64 data[2].VertOffset=127  data[2].PrimCount=32  data[2].PrimOffset=51
+        data[3].VertCount=64 data[3].VertOffset=191  data[3].PrimCount=32  data[3].PrimOffset=83
+        etc
+        */
 
         // Create committed D3D resources of proper sizes
         auto indexDesc       = CD3DX12_RESOURCE_DESC::Buffer(m.Indices.size());
@@ -354,9 +367,13 @@ HRESULT MeshShaderModel::UploadGpuResources(ID3D12Device* device, ID3D12CommandQ
         m.IBView.Format         = m.IndexSize == 4 ? DXGI_FORMAT_R32_UINT : DXGI_FORMAT_R16_UINT;
         m.IBView.SizeInBytes    = m.IndexCount * m.IndexSize;
 
+
+        // Mesh::std::vector<Span<uint8_t>> Vertices;
+        //Mesh:: std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> VertexResources;
         m.VertexResources.resize(m.Vertices.size());
         m.VBViews.resize(m.Vertices.size());
 
+        //Make the vertex buffer/s in the  m.VertexResources[j] D3D Resources.  At this point, they are empty resources until the data gets uploaded into them
         for (uint32_t j = 0; j < m.Vertices.size(); ++j)
         {
             auto vertexDesc = CD3DX12_RESOURCE_DESC::Buffer(m.Vertices[j].size());
@@ -449,9 +466,12 @@ HRESULT MeshShaderModel::UploadGpuResources(ID3D12Device* device, ID3D12CommandQ
         // Populate our command list
         //cmdList->Reset(cmdAlloc, nullptr);
 
+        // Mesh::std::vector<Span<uint8_t>> Vertices;
+        //Mesh:: std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> VertexResources;
+        //Copy from the Vertex data from Upload Heap to the Default Resource Heap.  This populates the final VBs
         for (uint32_t j = 0; j < m.Vertices.size(); ++j)
         {
-            cmdList->CopyResource(m.VertexResources[j].Get(), vertexUploads[j].Get());
+            cmdList->CopyResource(m.VertexResources[j].Get(), vertexUploads[j].Get()); //CopyResource(dest*, source*)
             const auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(m.VertexResources[j].Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
             cmdList->ResourceBarrier(1, &barrier);
         }

@@ -25,11 +25,12 @@ DXMeshShader::~DXMeshShader()
 
 void DXMeshShader::Init(ComPtr<ID3D12Device>& pd3dDevice, ComPtr<ID3D12CommandQueue>& commandQueue, ComPtr<ID3D12DescriptorHeap>& pCBVSRVHeap,
 	CD3DX12_VIEWPORT Viewport,CD3DX12_RECT ScissorRect, const std::wstring& shaderFileName, 
-	const std::wstring& meshletFileName, bool bUseEmbeddedRootSig)
+	const std::wstring& meshletFileName, bool bUseEmbeddedRootSig, bool bUseAmplificationShader)
 {
 
 	m_pd3dDevice = pd3dDevice;
 	m_bUseShaderEmbeddedRootSig = bUseEmbeddedRootSig;
+	m_bUseAmplificationShader = bUseAmplificationShader;
 
 	ThrowIfFailed(m_pd3dDevice->QueryInterface(IID_PPV_ARGS(&m_pd3dDevice2)), L"Couldn't get interface for the device.\n");
 
@@ -47,10 +48,12 @@ void DXMeshShader::Init(ComPtr<ID3D12Device>& pd3dDevice, ComPtr<ID3D12CommandQu
 
 }
 
-void DXMeshShader::ShaderEntryPoint(const std::wstring& meshShaderEntryPoint, const std::wstring& pixelShaderEntryPoint)
+void DXMeshShader::ShaderEntryPoint(const std::wstring& meshShaderEntryPoint, const std::wstring& pixelShaderEntryPoint,
+	const std::wstring& amplificationShaderEntryPoint)
 {
 	m_MeshShaderEntryPoint = meshShaderEntryPoint;
 	m_PixelShaderEntryPoint = pixelShaderEntryPoint;
+	m_AmplificationShaderEntryPoint = amplificationShaderEntryPoint;
 }
 
 void DXMeshShader::CreateGlobalRootSignature()
@@ -109,33 +112,6 @@ void DXMeshShader::CreateConstantBuffer()
 	}
 }
 
-//TODO this loads an obj file, not meshlet.  Either change or remove function.
-void DXMeshShader::LoadModelAndTexture(const std::string& modelFileName, const std::wstring& strTextureFullPath,
-	ComPtr<ID3D12Device>& pd3dDevice, ComPtr<ID3D12CommandQueue>& pCommandQueue,
-	std::shared_ptr<DXDescriptorHeap>& descriptor_heap_srv, const CD3DX12_VIEWPORT& Viewport,
-	const CD3DX12_RECT& ScissorRect)
-{
-
-	m_pd3dDevice = pd3dDevice;
-
-	m_cbvSrvHeap = descriptor_heap_srv->GetDescriptorHeap();
-	m_cbDescriptorIndex = descriptor_heap_srv->GetNewDescriptorIndex();
-
-	m_Viewport = Viewport;
-	m_ScissorRect = ScissorRect;
-
-	CreateD3DResources(pCommandQueue);
-
-	LoadModel(modelFileName);
-
-	m_DXTexture = std::make_shared<DXTexture>();
-
-	m_DXTexture->CreateDDSTextureFromFile12(pd3dDevice.Get(), pCommandQueue, strTextureFullPath.c_str());
-
-	CreateSRVs(descriptor_heap_srv);
-
-}
-
 void  DXMeshShader::AddTexture(const std::wstring& strTextureFullPath, ComPtr<ID3D12Device>& pd3dDevice, ComPtr<ID3D12CommandQueue>& pCommandQueue, std::shared_ptr<DXDescriptorHeap>& descriptor_heap_srv)
 {
 	m_DXTexture = std::make_shared<DXTexture>();
@@ -161,6 +137,7 @@ void DXMeshShader::CreatePipelineState()
 #endif
 		IDxcBlob* msBlob = nullptr;
 		IDxcBlob* psBlob = nullptr;
+		IDxcBlob* asBlob = nullptr;
 		D3D12ShaderCompilerInfo shaderCompiler;
 		DXShaderUtilities shaderUtils;
 
@@ -174,6 +151,12 @@ void DXMeshShader::CreatePipelineState()
 		D3D12ShaderInfo infoPS(m_ShaderFilename.c_str(), m_PixelShaderEntryPoint.c_str(), L"ps_6_6");
 		shaderUtils.Compile_Shader(shaderCompiler, infoPS, &psBlob);
 
+		D3D12ShaderInfo infoAS(m_ShaderFilename.c_str(), m_AmplificationShaderEntryPoint.c_str(), L"as_6_6");
+		if (m_bUseAmplificationShader)
+		{
+			shaderUtils.Compile_Shader(shaderCompiler, infoAS, &asBlob);
+		}
+		
 		// Pull root signature from the precompiled mesh shader.
 		if (m_bUseShaderEmbeddedRootSig)
 		{
@@ -192,6 +175,13 @@ void DXMeshShader::CreatePipelineState()
 
 		psoDesc.PS.BytecodeLength = psBlob->GetBufferSize();
 		psoDesc.PS.pShaderBytecode = psBlob->GetBufferPointer();
+
+		if (m_bUseAmplificationShader)
+		{
+			psoDesc.AS.BytecodeLength = asBlob->GetBufferSize();
+			psoDesc.AS.pShaderBytecode = asBlob->GetBufferPointer();
+		}
+		
 		
 		psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 		// The camera is inside the sky sphere, so just turn off culling.
@@ -328,9 +318,18 @@ void DXMeshShader::Render(ComPtr<ID3D12GraphicsCommandList>& pGraphicsCommandLis
 	const DirectX::XMMATRIX& proj, std::vector<DXGraphicsUtilities::SrvParameter>& rootSrvParams)
 {
 	static bool bUseNewFunction = true;
+
 	if (bUseNewFunction)
 	{
-		RenderMeshlets(pGraphicsCommandList, view,proj,rootSrvParams);
+		if (m_bUseAmplificationShader)
+		{
+			RenderMeshletsWithAS(pGraphicsCommandList, view, proj, rootSrvParams);
+		}
+		else
+		{
+			RenderMeshlets(pGraphicsCommandList, view, proj, rootSrvParams);
+		}
+		
 		return;
 	}
 
@@ -396,27 +395,113 @@ void DXMeshShader::RenderMeshlets(ComPtr<ID3D12GraphicsCommandList>& pGraphicsCo
 	XMStoreFloat4x4(&m_constantBufferData.World, XMMatrixTranspose(world));
 	XMStoreFloat4x4(&m_constantBufferData.WorldView, XMMatrixTranspose(world * view));
 	XMStoreFloat4x4(&m_constantBufferData.WorldViewProj, XMMatrixTranspose(world * view * proj));
-	m_constantBufferData.DrawMeshlets = true;
+	m_constantBufferData.DrawMeshlets = true;  //draw debug viz of meshlets if true via pixel shader ouput color
 
 	memcpy(m_cbvDataBegin, &m_constantBufferData, sizeof(m_constantBufferData));
 
+	//	MeshShaderModel m_Model;
+	//MeshShaderModel.h file has the struct Mesh.The Mesh struct has all of the imported data from the binary mesh file ie all of the meshlet data.
+	//The m_Model has Iterator interface that allows for the iteration through member  std::vector<Mesh>  m_meshes
+	//auto begin() { return m_meshes.begin(); }
+	//auto end() { return m_meshes.end(); }
+
+	//iterate through MeshShaderModel::m_meshes
 	for (auto& mesh : m_Model)
 	{
 		//Note: register b1 is set with two seperate 32 bit constants via SetGraphicsRoot32BitConstant(0, data, offset)
-		pCommandList->SetGraphicsRoot32BitConstant(1, mesh.IndexSize, 0); //b1 at offset 0
+		pCommandList->SetGraphicsRoot32BitConstant(1, mesh.IndexSize, 0); //b1 at offset 0.   mesh.IndexSize is number of bytes to store vertex index ie 4
 
 		pCommandList->SetGraphicsRootShaderResourceView(2, mesh.VertexResources[0]->GetGPUVirtualAddress()); //t0
 		pCommandList->SetGraphicsRootShaderResourceView(3, mesh.MeshletResource->GetGPUVirtualAddress()); //t1
 		pCommandList->SetGraphicsRootShaderResourceView(4, mesh.UniqueVertexIndexResource->GetGPUVirtualAddress()); //t2
 		pCommandList->SetGraphicsRootShaderResourceView(5, mesh.PrimitiveIndexResource->GetGPUVirtualAddress()); //t3
 
-		for (auto& subset : mesh.MeshletSubsets)
+		//iterate through Span<subset> via member Span<Subset>::T* begin() { return m_data; }
+		for (auto& subset : mesh.MeshletSubsets)  //   Span<Subset>               MeshletSubsets;
 		{
 			pCommandList->SetGraphicsRoot32BitConstant(1, subset.Offset, 1);//b1 at offset 1 ie last param=1
-			pCommandList->DispatchMesh(subset.Count, 1, 1);
+
+			//the first param, subset.Count, is the number of meshlets in a mesh.  Thus, 1 workgroup per meshlet.
+			pCommandList->DispatchMesh(subset.Count, 1, 1);  //subset.Count equals the number of meshlets.  for sphere1.bin, subset.Count=33 meshlets
 		}
 	}
+}
 
+void DXMeshShader::RenderMeshletsWithAS(ComPtr<ID3D12GraphicsCommandList>& pGraphicsCommandList, const DirectX::XMMATRIX& view,
+	const DirectX::XMMATRIX& proj, std::vector<DXGraphicsUtilities::SrvParameter>& rootSrvParams)
+{
+	ComPtr<ID3D12GraphicsCommandList6> pCommandList;
+	ThrowIfFailed(pGraphicsCommandList->QueryInterface(IID_PPV_ARGS(&pCommandList)), L"Couldn't get interface for the command list.\n");
+
+	//set pipeline and signature
+	pCommandList->SetPipelineState(m_pMeshShaderPipelineState.Get());
+	pCommandList->SetGraphicsRootSignature(m_pMeshShaderRootSignature.Get());
+
+	//this descriptor heap is not required to draw the original mesh since all of the shader views are set directly
+	//with the GPU virtual address since they are buffers not textures.  We do need the descriptor heap for actual texture
+	//srvs however.
+	ID3D12DescriptorHeap* ppHeaps[] = { m_cbvSrvHeap.Get() };
+	pCommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+
+	//for (auto param : rootSrvParams)
+	//{
+		//pCommandList->SetGraphicsRootDescriptorTable(param.mRootParamIndex, param.mHandle);
+	//}
+
+	if (m_DXTexture != nullptr)
+	{
+		CD3DX12_GPU_DESCRIPTOR_HANDLE texHandle = m_DXTexture->GetSrvGPUDescriptorHandle(m_pd3dDevice);
+		int root_parameter = 6;
+		pCommandList->SetGraphicsRootDescriptorTable(root_parameter, texHandle);
+	}
+
+
+	//set the constant buffer address directly instead of using a table (ie instead of a GPU handle).  sets b0
+	pCommandList->SetGraphicsRootConstantBufferView(0, m_constantBuffer->GetGPUVirtualAddress());
+
+	XMMATRIX world = XMMATRIX(g_XMIdentityR0, g_XMIdentityR1, g_XMIdentityR2, g_XMIdentityR3);
+
+	//copy the data into the constant buffer
+	XMStoreFloat4x4(&m_constantBufferData.World, XMMatrixTranspose(world));
+	XMStoreFloat4x4(&m_constantBufferData.WorldView, XMMatrixTranspose(world * view));
+	XMStoreFloat4x4(&m_constantBufferData.WorldViewProj, XMMatrixTranspose(world * view * proj));
+	m_constantBufferData.DrawMeshlets = true;  //draw debug viz of meshlets if true via pixel shader ouput color
+
+	memcpy(m_cbvDataBegin, &m_constantBufferData, sizeof(m_constantBufferData));
+
+	//	MeshShaderModel m_Model;
+	//MeshShaderModel.h file has the struct Mesh.The Mesh struct has all of the imported data from the binary mesh file ie all of the meshlet data.
+	//The m_Model has Iterator interface that allows for the iteration through member  std::vector<Mesh>  m_meshes
+	//auto begin() { return m_meshes.begin(); }
+	//auto end() { return m_meshes.end(); }
+
+	//iterate through MeshShaderModel::m_meshes
+	for (auto& mesh : m_Model)
+	{
+		//Note: register b1 is set with two seperate 32 bit constants via SetGraphicsRoot32BitConstant(0, data, offset)
+		pCommandList->SetGraphicsRoot32BitConstant(1, mesh.IndexSize, 0); //b1 at offset 0.   mesh.IndexSize is number of bytes to store vertex index ie 4
+
+		pCommandList->SetGraphicsRootShaderResourceView(2, mesh.VertexResources[0]->GetGPUVirtualAddress()); //t0 actual vertices in mesh
+		pCommandList->SetGraphicsRootShaderResourceView(3, mesh.MeshletResource->GetGPUVirtualAddress()); //t1
+		pCommandList->SetGraphicsRootShaderResourceView(4, mesh.UniqueVertexIndexResource->GetGPUVirtualAddress()); //t2
+		pCommandList->SetGraphicsRootShaderResourceView(5, mesh.PrimitiveIndexResource->GetGPUVirtualAddress()); //t3
+
+		
+		//iterate through Span<subset> via member Span<Subset>::T* begin() { return m_data; }
+		for (auto& subset : mesh.MeshletSubsets)  // Span<Subset> MeshletSubsets; struct Subset{uint32_t Offset;uint32_t Count;};
+		{
+			pCommandList->SetGraphicsRoot32BitConstant(1, subset.Offset, 1);//b1 at offset 1 ie last param=1
+
+			//the first param, subset.Count, is the number of meshlets in a mesh. 
+			//for sphere1.bin, subset.Count=33 meshlets which yields threadGroupCountX=2 (thus launches 2 workgroups of AS).
+			// The AS has DispatchMesh(AS_GROUP_SIZE, 1, 1, sPayload); where AS_GROUP_SIZE is hardcoded to 32 
+			//and launches 32 workgroups of mesh shaders. 
+			//Threadgroup is same as Workgroup.  Each thread group has its own shared memory and can sync threads in the
+			//same group.
+			UINT threadGroupCountX = static_cast<UINT>((subset.Count / 32) + 1);
+			pCommandList->DispatchMesh(threadGroupCountX, 1, 1); 
+		}
+	}
 }
 
 void DXMeshShader::CreateSRVs(std::shared_ptr<DXDescriptorHeap>& descriptor_heap_srv)

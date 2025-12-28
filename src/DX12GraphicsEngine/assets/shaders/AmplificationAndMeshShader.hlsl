@@ -32,6 +32,72 @@
                   DescriptorTable(SRV(t4, numDescriptors=1)), \
                   StaticSampler(s0, filter=FILTER_MIN_MAG_MIP_LINEAR)"
 
+/////////////////////////////////////////////////////////////////////////
+
+//32 is selected to match the number of threads in a GPU wave, aka the GPU’s wave size. 
+#define AS_GROUP_SIZE 32
+
+/*
+struct CameraProperties 
+{
+    float4x4 MVP;
+};
+*/
+
+//ConstantBuffer<CameraProperties> Cam : register(b2);
+
+
+struct Payload 
+{
+    uint MeshletIndices[AS_GROUP_SIZE];
+};
+
+groupshared Payload sPayload;
+
+// -------------------------------------------------------------------------------------------------
+// Amplification Shader
+// -------------------------------------------------------------------------------------------------
+
+/*
+IMPORTANT: Using UINT INSTEAD OF UINT3 for SV_GroupThreadID and SV_DispatchThreadID !!!
+The shader built-in SV_DispatchThreadID is a uint3 type, not uint. It provides the unique 3D index 
+for the current thread across the entire dispatch call in a compute shader. 
+The reason you may have seen it used as a single uint (e.g., id.x) in code examples is usually for 
+simplicity when the shader is operating on a 1D data structure like a flat array or a buffer where 
+the y and z dimensions are explicitly set to 1. 
+*/
+
+[numthreads(AS_GROUP_SIZE, 1, 1)]
+void asmain(
+    uint gtid : SV_GroupThreadID, //typically this is an uint3, but ok since group and thread indices for y and z are 1
+    uint dtid : SV_DispatchThreadID, //typically this is an uint3, , but ok since group and thread indices for y and z are 1
+    uint gid : SV_GroupID
+)
+{
+    sPayload.MeshletIndices[gtid] = dtid;
+
+    // Dispatch all Mesh Shader Threadgroups. If AS_GROUP_SIZE==32, we would be dispatching 32 thread groups where 
+    // each  Mesh Shader group contains a number of actual mesh shader threads.  The max number of threads that a group
+    // can contain (as specificed by hardware) is known as Warp or Wavefront sizes (NVidia and AMD).
+   
+    //For all APIs, calling the dispatch mesh shader function will end execution of the entire amplification
+    // shader threadgroup’s execution. That is, calling DispatchMesh() will end execution for threadgroup.  Thus,
+    // DispatchMesh() will ONLY GET CALLED ONCE PER THREADGROUP!!
+    //DispatchMesh() called from the amplification shader, launches the threadgroups for 
+    // the mesh shader. This function must be called exactly once per amplification shader
+    // !! The DispatchMesh call implies a GroupMemoryBarrierWithGroupSync().  Thus, threads in the thread group will
+    //stall at this point until all threads in the group reach the DispatchMesh call.
+    
+    //Ex, if the c++ is:
+    //UINT threadGroupCountX = 2; pCommandList->DispatchMesh(threadGroupCountX, 1, 1); 
+    // then 2 AS Workgroups are dispatched.  This will cause DispatchMesh(AS_GROUP_SIZE, 1, 1, sPayload); to get called twice
+    // (as shown below). Each DispatchMesh call launches 32 workgroups of mesh shader.
+    //Thus, we launched 2*32 = 64 workgroups of mesh shaders where each mesh shader workgroup will have a specific number
+    //of threads.
+    DispatchMesh(AS_GROUP_SIZE, 1, 1, sPayload); // Tell mesh shader which meshlet to look at
+}
+
+
 struct Constants
 {
     float4x4 World;
@@ -40,15 +106,19 @@ struct Constants
     uint     DrawMeshlets; //draw debug viz of meshlets if true
 };
 
-//The MeshInfo struct is stored in register b1.  It is stored via TWO C++ calls:
-//pCommandList->SetGraphicsRoot32BitConstant(1, mesh.IndexSize, 0); for each mesh and
+//The MeshInfo struct is stored in register b1.  It is stored via TWO C++ calls each setting a 32-bit const:
+//pCommandList->SetGraphicsRoot32BitConstant(1, mesh.IndexSize, 0); //b1 at offset 0 ie last param=0
 //pCommandList->SetGraphicsRoot32BitConstant(1, subset.Offset, 1);//b1 at offset 1 ie last param=1
+
+// !!THUS THERE IS NO "MeshInfo" struct on the C++ side!!  The C++ manually sets  register b1 with the two calls above
 struct MeshInfo
 {
     uint IndexBytes;// mesh.IndexSize is number of bytes to store vertex index ie 4
     uint MeshletOffset;
 };
 
+//struct defines the actual vertices in the VB for the original mesh.  This matches the vertex struct used in the C++ when writing the vertices
+//to the vertex buffer
 struct Vertex
 {
     float3 Position;
@@ -56,6 +126,7 @@ struct Vertex
     float2 uv0;
 };
 
+//struct to define the output vertex type emitted from mesh shader
 struct VertexOut
 {
     float4 PositionHS : SV_Position;
@@ -65,6 +136,8 @@ struct VertexOut
     uint   MeshletIndex : COLOR0;
 };
 
+//The struct Meshlet defines the element type in StructuredBuffer array.  This struct matches the original meshlet data in the imported mesh data.  For ex,
+//the sphere1.bin model has 33 meshlets each with the data shown below.  These 33 meshlets are stored in StructuredBuffer<Meshlet> Meshlets below. 
 struct Meshlet
 {
     uint VertCount;
@@ -81,8 +154,8 @@ StructuredBuffer<Meshlet> Meshlets            : register(t1);
 ByteAddressBuffer         UniqueVertexIndices : register(t2);
 StructuredBuffer<uint>    PrimitiveIndices    : register(t3);
 
-SamplerState g_SamplerState : register(s0);
-Texture2D g_Texture : register(t4);
+SamplerState g_SamplerState : register(s0); //texture sampler for diffuse texture in PS
+Texture2D g_Texture : register(t4); //diffuse texture in PS
 
 
 /////
@@ -135,24 +208,26 @@ VertexOut GetVertexAttributes(uint meshletIndex, uint vertexIndex)
     return vout;
 }
 
-//The C++ for this exammple does 1 workgroup per meshlet. ie pCommandList->DispatchMesh(number meshlets in mesh, 1, 1);
-//We then launch 128 threads for each meshlet in each workgroup.  Each workgroup outputs the primitives, ie triangles
-//for its meshlet.
-
+//mesh shader
 [RootSignature(ROOT_SIG)]
 [NumThreads(128, 1, 1)] // 128 equals the max number of primitives (ie triangles) output.  Thus, 1 triangle/thread output.
 [OutputTopology("triangle")]
 void msmain(
-    uint gtid : SV_GroupThreadID,
-    uint gid : SV_GroupID,
+    uint gtid : SV_GroupThreadID,//typically this is an uint3, but ok since group and thread indices for y and z are 1
+    uint gid : SV_GroupID,//typically this is an uint3, but ok since group and thread indices for y and z are 1
+    in payload  Payload    payload,
     out indices uint3 tris[126],
     out vertices VertexOut verts[64]
 )
 {
-    Meshlet m = Meshlets[MeshInfo.MeshletOffset + gid];
+    //one meshlet/thread group.  Thus, we use the group id, "gid" as an index into the array of meshlets.
+    Meshlet m = Meshlets[MeshInfo.MeshletOffset + gid];   // Look up meshlet
 
     SetMeshOutputCounts(m.VertCount, m.PrimCount); //MUST be called for all mesh shaders
 
+    //Use the group thread id, "gtid" as an index into various arrays for a specific meshlet.  We test the gtid
+    // using  if (gtid < m.PrimCount) and  if (gtid < m.VertCount) to make sure a thread with an index to high
+    //simply does nothing!!
     if (gtid < m.PrimCount)
     {
         tris[gtid] = GetPrimitive(m, gtid); //ouput 1 triangle per thread ie  out indices uint3 tris[126]
@@ -217,33 +292,3 @@ float4 psmain(VertexOut input) : SV_TARGET
 }
 
 
-
-
-/// ----------------------------------- Simple Triangle Mesh Shader and Pixel Shader -------------------
-
-struct MeshOutput {
-    float4 Position : SV_POSITION;
-    float3 Color : COLOR;
-};
-
-[RootSignature(ROOT_SIG)]
-[outputtopology("triangle")]
-[numthreads(1, 1, 1)]
-void msmain2(out indices uint3 triangles[1], out vertices MeshOutput vertices[3]) {
-    SetMeshOutputCounts(3, 1);
-    triangles[0] = uint3(0, 1, 2);
-
-    vertices[0].Position = float4(-0.5, 0.5, 0.0, 1.0);
-    vertices[0].Color = float3(1.0, 0.0, 0.0);
-
-    vertices[1].Position = float4(0.5, 0.5, 0.0, 1.0);
-    vertices[1].Color = float3(0.0, 1.0, 0.0);
-
-    vertices[2].Position = float4(0.0, -0.5, 0.0, 1.0);
-    vertices[2].Color = float3(0.0, 0.0, 1.0);
-}
-
-float4 psmain2(MeshOutput input) : SV_TARGET
-{
-    return float4(1,1,0,1);
-}
